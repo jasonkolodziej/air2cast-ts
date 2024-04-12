@@ -25,8 +25,15 @@ const config = {
 	preprocess: [preprocess(), optimizeImports()],
 
 	kit: {
-		adapter: adapter()
-	}
+		adapter: adapter(),
+		// env: {
+		// 	// dir?: string;
+		// },
+		// https://kit.svelte.dev/docs/hooks#server-hooks
+		// files:{
+			
+		// }
+	},
 };
 
 export default config;

@@ -4,11 +4,20 @@
 			"path": "."
 		}
 	],
-	"settings": {},
+	"settings": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"[javascript]": {
+		  "editor.defaultFormatter": "esbenp.prettier-vscode"
+		},
+		"[typescript]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode"
+		  }
+	},
 	"extensions": {
 		"recommendations": [
 			"svelte.svelte-vscode",
-			"ms-vscode.vscode-typescript-next"
+			"ms-vscode.vscode-typescript-next",
+			"esbenp.prettier-vscode"
 		]
 	}
 }

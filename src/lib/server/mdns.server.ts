@@ -1,5 +1,6 @@
-import {MDNSServiceDiscovery} from 'tinkerhub-mdns'
+import {MDNSServiceDiscovery, MDNSServicePublisher, type MDNSService} from 'tinkerhub-mdns'
 import { chromecastServiceName, mdnsServiceOpt } from './chromecastHandler.server'
+import type { Subscriber } from 'svelte/store'
 
 /**
  * ex: https://developer.spotify.com/documentation/commercial-hardware/implementation/guides/zeroconf
@@ -26,6 +27,18 @@ import { chromecastServiceName, mdnsServiceOpt } from './chromecastHandler.serve
  */
 
 export const discoverChromeCast = new MDNSServiceDiscovery(mdnsServiceOpt)
+export const onCastAvail = discoverChromeCast.onAvailable
+export const onCastUpdate = discoverChromeCast.onUpdate
+export const onCastUnavail = discoverChromeCast.onUnavailable
+
+export type DeviceSubscriber = Subscriber<[MDNSService]>
+
+export const IsTv = <T extends MDNSService>(device: T):boolean|undefined => {
+    const key = "fn"
+    return device.data.get(key)?.toString().toLowerCase().includes('tv')
+}
 
 
+
+// export const 
   
