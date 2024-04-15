@@ -34,17 +34,18 @@
 		"prettier-plugin-svelte": "^3.1.2",
 		"svelte": "^4.2.7",
 		"svelte-check": "^3.6.0",
+		"tinkerhub-mdns": "^0.5.1",
 		"tslib": "^2.4.1",
 		"typescript": "^5.0.0",
 		"vite": "^5.0.3",
 		"vite-test-utils": "^0.6.0",
-		"vitest": "^1.5.0",
-		"tinkerhub-mdns": "^0.5.1"
+		"vitest": "^1.5.0"
 	},
 	"type": "module",
 	"packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610",
 	"dependencies": {
 		"chromecast-client": "^1.0.1",
+		"sprache": "^1.2.2",
 		"tinkerhub-mdns": "^0.5.1"
 	}
 }
