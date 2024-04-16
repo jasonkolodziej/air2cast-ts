@@ -4,7 +4,7 @@ import { MAC, parseMAC } from './mac/MAC';
 import type { K } from 'vitest/dist/reporters-LqC_WI4d.js';
 
 // const IPv6 = v6({exact: true});
-
+//? https://zaiste.net/posts/nodejs-child-process-spawn-exec-fork-async-await/
 export const executeCommand = (
     cmd: string, 
     successCallback: { (branch: any): any; (arg0: string): void; }, 
