@@ -2,6 +2,7 @@
 import type { Handle } from '@sveltejs/kit';
 import {discoverChromeCast, IsTv} from '$lib/server/mdns.server';
 import { Parse } from '$lib/server/libconfig.server';
+import { arp } from '$lib/server/arp.server';
 
 export const handle: Handle = async ({ event, resolve }) => {
     // console.log(event);
@@ -102,8 +103,12 @@ export const handle: Handle = async ({ event, resolve }) => {
     //	resend_control_last_check_time = 0.10; // Use this optional advanced setting to set the latest time, in seconds, by which the last check should be done before the estimated time of a missing packet's transfer to the output buffer.
     //	missing_port_dacp_scan_interval_seconds = 2.0; // Use this optional advanced setting to set the time interval between scans for a DACP port number if no port number has been provided by the player for remote control commands
     };`
-    let oo = Parse(test) as Object
-    console.log(oo)
+
+   
+    // gl-mt3000.localdomain (192.168.2.61) at 9e:83:c4:3d:ce:3d on en0 ifscope [ethernet]
+
+    // let oo = Parse(test) as Object
+    // console.log(oo)
 
     // console.log("ll", ll);
     // cast.onAvailable();
