@@ -1,23 +1,23 @@
 // const { Parse } = require('sprache');
 import { Parse, Result, type Parser } from "sprache";
-const { space } = require("./space")
+import {space} from './space';
 
-const Integer = Parse
+const Integer:Parser<Number> = Parse
     .digit.xAtLeastOnce().text()
     .select(digits => Number.parseInt(digits, 10))
     .named('an integer');
 
-const Octal = Parse
+const Octal:Parser<Number> = Parse
     .regex(/0[0-7]+/)
     .select(x => Number.parseInt(x, 8))
     .named('octal notation number');
 
-const Hex = Parse
+const Hex:Parser<Number> = Parse
     .regex(/0x[0-9a-f]+/i)
     .select(x => Number.parseInt(x.replace('0x', ''), 16))
     .named('a hex notation number');
 
-const Float = Parse
+const Float:Parser<Number> = Parse
     .regex(/[0-9]+\.[0-9]+/)
     .select(x => Number.parseFloat(x))
     .named('a floating point number');
@@ -46,11 +46,11 @@ const UnsignedNumber:Parser<number> = Parse.queryOr(function* () {
     yield Integer;
 })
 
-function generateSignedParser(numberParser:Parser<number>) {
+function generateSignedParser<Y>(numberParser:Parser<Y>) {
     return Parse.query(function* () {
         const sign = yield Parse.char(input => /\+|-/.test(input), "+ or - sign")
         const number = (yield numberParser) as unknown as number;
-        return Parse.return((sign && sign == '-') ? -number : number)
+        return Parse.return((sign && sign == '-') ? -number : number) as Parser<Y>
     })
 }
 
@@ -63,13 +63,13 @@ const MaybeSignedNumber = Parse.queryOr(function* () {
     yield UnsignedNumber;
 })
 
-const NumberParser64bit = Parse.query(function* () {
+const NumberParser64bit:Parser<number> = Parse.query(function* () {
     const number = yield MaybeSignedNumber;
     const last = yield Parse.char('L', "the Letter L for 64bit int").once();
     return Parse.return(number);
 })
 
-const NumberParser = Parse.queryOr(function* () {
+const NumberParser:Parser<number> = Parse.queryOr(function* () {
     yield NumberParser64bit;
     yield MaybeSignedNumber;
 })
@@ -107,7 +107,7 @@ const StringEscapeSequence = Parse.query(function* () {
     }
 })
 
-const StringParser = Parse.query(function* () {
+const StringParser:Parser<string> = Parse.query(function* () {
     const first = yield Parse.char("\"");
     let done = false
     let rest = []
@@ -130,12 +130,12 @@ const MultilineStringParser = Parse.query(function* () {
     return Parse.return(content);
 })
 
-const BooleanParser = Parse
+const BooleanParser:Parser<boolean> = Parse
     .ignoreCase("true").or(Parse.ignoreCase("false")).text()
     .select(bool => bool.toLowerCase() === "true")
     .named('a boolean');
 
-const AdjacentString = Parse.query(function* () {
+const AdjacentString:Parser<string> = Parse.query(function* () {
     let result = ([yield StringParser]) as unknown as string[]
     let input = (yield Parse.regex(/(?:\"(?:[^\"\\]|\\.)*\"|[\n\t\s]+)+/)) as unknown as string // get all input
 
@@ -154,19 +154,19 @@ const AdjacentString = Parse.query(function* () {
 
 export const scalarValue = Parse.query(function* () {
     yield Parse.whiteSpace.many();
-    const value = yield Parse.queryOr(function* () {
+    const value = (yield Parse.queryOr(function* () {
         yield AdjacentString
         yield StringParser
         yield NumberParser
         yield BooleanParser
         yield MultilineStringParser
-    })
+    })) as unknown as any
     yield Parse.whiteSpace.many();
     return Parse.return(value);
 })
 
 
-function makeArrayValueParser(base: Parser<any>) {
+function makeArrayValueParser<T>(base: Parser<T>) {
     return Parse.query(function* () {
         yield space.many()
         const value = yield base
@@ -174,7 +174,7 @@ function makeArrayValueParser(base: Parser<any>) {
         yield Parse.char(",").optional()
         yield space.many()
         return Parse.return(value)
-    }).atLeastOnce()
+    }).atLeastOnce() as Parser<T>
 }
 
 export const ArrayElements = Parse.queryOr(function* () {

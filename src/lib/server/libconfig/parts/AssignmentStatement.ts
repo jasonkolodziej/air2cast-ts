@@ -23,7 +23,7 @@ export const Setting = Parse.query(function* () {
         type: "setting",
         key: identifier,
         value: value,
-    }) as any;
+    });
 });
 
 export const Group = Parse.query(function* () {
@@ -32,19 +32,19 @@ export const Group = Parse.query(function* () {
     const raw_values = (yield Parse.queryOr(function* () {
         yield Setting
         yield space.atLeastOnce().text()
-    }).many()) as unknown as string[];
+    }).many()) as unknown as {key: string; value: any;}[];
     yield Parse.char("}")
     yield space.many()
 
     const values = raw_values.filter((i: any) => typeof i === "object")
 
-    let group = {}
+    let group:object = Object() // {}
     for (let i = 0; i < values.length; i++) {
         const value = values[i];
-        group[value.key] = value.value
+        group = Object.assign({[value.key]: value.value}, group)
     }
 
-    return Parse.return(group);
+    return Parse.return(group) as {[key:string]:any};
 })
 
 export const ArrayParser = Parse.query(function* () {

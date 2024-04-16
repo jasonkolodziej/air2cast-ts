@@ -1,6 +1,8 @@
 
 // const { Parse } = require('sprache');
-import { Parse } from "sprache";
+import { Parse, Result, type IInput } from "sprache";
+import { Setting } from "./AssignmentStatement";
+import { space } from "./space";
 
 
 /**
@@ -64,6 +66,40 @@ export const ParseComments = Parse.query(function* () {
         content.filter(item => typeof item === "object")
     )
 })
+
+export const ParseCommentedSetting = Parse.query(function* () {
+    const content = (yield Parse.queryOr(function* () {
+        yield Comment
+        yield Parse.regex(/[^\#\/]+/)
+    }).many()) as unknown as {type: string; comment: string;}[]
+    let values = content.filter(item => typeof item === "object") 
+    let group:object = Object() // {}
+    // console.log(values)
+    for (let i = 0; i < values.length; i++) {
+        const value = values[i];
+        let a = (Setting.atLeastOnce().tryParse(value.comment) as unknown) as Result<{type: string; key: string; value:any;}>
+        const b = ParseComments.tryParse(value.comment) as unknown as Result<{type: string; comment: string;}>
+        if (!a.wasSuccessful && b.wasSuccessful) {
+            // console.log(a)
+            group = Object.assign(group, {['comment']:value});
+        } else if (a.wasSuccessful && b.wasSuccessful) {
+            // console.log(a)
+            const cmnt = a.value as {type: string; key: string; value:any;};
+            // console.log(cmnt);
+            group = Object.assign(group, Object.assign(
+                {[a.value[0].key as string]: {
+                    '_value': a.value[0].value,
+                    ['comment']: b.value[0]
+                }
+            }))
+        }
+    }
+    return Parse.return(
+        group        
+    )
+})
+
+
 
 export const RemoveComments = Parse.query(function* () {
     const content = (yield Parse.queryOr(function* () {

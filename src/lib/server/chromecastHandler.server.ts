@@ -1,7 +1,5 @@
-import {connect as conn, ReceiverController, type PersistentClient} from 'chromecast-client'
-import type { Subscriber } from 'svelte/store'
-import { MDNSServiceDiscovery, Protocol, type MDNSDiscoveryOptions, type MDNSService } from 'tinkerhub-mdns'
-import { MDNSResponse } from 'tinkerhub-mdns/dist/types/manager'
+import {ReceiverController, type PersistentClient} from 'chromecast-client'
+import { Protocol, type MDNSDiscoveryOptions, type MDNSService } from 'tinkerhub-mdns'
 
 //ChromecastServiceName is the name of the service to lookup via mDNS for finding chromecast devices
 export const chromecastServiceName = "_googlecast._tcp"

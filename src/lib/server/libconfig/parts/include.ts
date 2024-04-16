@@ -1,5 +1,5 @@
 import {join} from "path"
-const { readFileSync } = require("fs");
+import {readFileSync} from "fs";
 /**
  * 
  * @param {string} path 
