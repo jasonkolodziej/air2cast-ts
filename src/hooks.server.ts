@@ -1,16 +1,21 @@
 // ? https://kit.svelte.dev/docs/hooks#server-hooks
 import type { Handle } from '@sveltejs/kit';
-import {discoverChromeCast, IsTv} from '$lib/server/mdns.server';
+import {discoverChromeCast, IsTv, StartStopNotify} from '$lib/server/mdns.server';
 import { Parse } from '$lib/server/libconfig.server';
-import { arp } from '$lib/server/arp.server';
+import { toLibConfigFile } from '$lib/server/libconfig/toLibConfigFile';
+import { arpAll, ArpDataCache, arpDevice } from '$lib/server/arp.server';
 
 export const handle: Handle = async ({ event, resolve }) => {
     // console.log(event);
     // const cast = discoverChromeCast;
-    // cast.onAvailable(service => {
-    //     console.log(service)
-    //     IsTv(service) ? console.warn("Device is a TV") : undefined
-    // });
+
+    // const arpData = arpAll();
+    // let devices = StartStopNotify(cast.onAvailable, cast.onUnavailable, cast.onUpdate, arpData)
+    
+    // devices.subscribe(val => console.log(val))
+
+    // const ipTest = '192.168.2.152'
+    // arpDevice(ipTest)?.stdout?.on('data', (stream) => console.log(ArpDataCache(stream)))
 
     const test = `// Sample Configuration File for Shairport Sync
     // Commented out settings are generally the defaults, except where noted.
@@ -107,8 +112,8 @@ export const handle: Handle = async ({ event, resolve }) => {
    
     // gl-mt3000.localdomain (192.168.2.61) at 9e:83:c4:3d:ce:3d on en0 ifscope [ethernet]
 
-    // let oo = Parse(test) as Object
-    // console.log(oo)
+    let oo = Parse(test) as JSON
+    console.log(toLibConfigFile(oo))
 
     // console.log("ll", ll);
     // cast.onAvailable();

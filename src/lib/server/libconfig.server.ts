@@ -13,3 +13,13 @@ export const Parse = (arg0: string) => {
     // console.log()
     return o
 };
+
+export interface DeviceConfig {
+        airplay_device_id: String, // * 0x<MACADDR>L
+        port: Number,
+        mdns_backend: 'avahi',
+        output_backend: "alsa" | "pipe" | "stdout",
+        interpolation: "auto" | "basic" | "soxr",
+        name: String
+}
+

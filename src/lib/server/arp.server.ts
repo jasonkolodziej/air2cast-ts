@@ -1,7 +1,7 @@
-import {exec} from 'child_process';
+import {exec, spawn} from 'child_process';
 import { isIP } from 'net';
 import { MAC, parseMAC } from './mac/MAC';
-import type { K } from 'vitest/dist/reporters-LqC_WI4d.js';
+import { readable, readonly, writable } from 'svelte/store';
 
 // const IPv6 = v6({exact: true});
 //? https://zaiste.net/posts/nodejs-child-process-spawn-exec-fork-async-await/
@@ -68,7 +68,43 @@ export const ArpDataCache = (data: string):Array<ArpData> => data.
     ).filter(item => item != null);
 
 
-export const arp = executeCommand('arp -a',
+export const arpDevice = (ip:string) => {
+  switch(isIP(ip))
+  {
+    case 6: return undefined
+    case 4:
+    default:
+      return exec(`arp -n ${ip}`)
+  }
+}
+
+// export const arpAll = () => {
+//   const p = spawn('arp', ['-a'])
+//   const arp = readable(p.stdout)
+//   const arpData = writable(new Array<ArpData>())
+//   arp.subscribe((stdOut) => {
+//     stdOut.on('data', (stream: string) => {
+//       console.log("ARPALL")
+//       // console.log(stream)
+//       // arpData.set(ArpDataCache(stream))
+//     })
+//   })
+//   return arpData
+// }
+
+const writableStore = writable(new Array<ArpData>());
+
+export const arpAll = () => {
+  const p = exec('arp -a');
+  const arp = readable(p)
+  const arpData = writable(new Array<ArpData>());
+  arp.subscribe((p) => p.stdout?.on('data', (stream) => {
+    arpData.set(ArpDataCache(stream))
+  }))
+  return readonly(arpData);
+}
+
+const arp = executeCommand('arp -a',
   (data: string) => {
     // gl-mt3000.localdomain (192.168.2.61) at 9e:83:c4:3d:ce:3d on en0 ifscope [ethernet]
     let info = ArpDataCache(data)
@@ -77,13 +113,9 @@ export const arp = executeCommand('arp -a',
   console.error
 );
 
-export const ArpDataWhere = <T>(field:<Kt, in T>(_kt: keyof T) => Kt, matches:<K, in ArpData>(_key: keyof ArpData) => K, _self: Array<ArpData>):Array<ArpData> => {
-    return (_self).filter(item => {
-        matches === field
-    })
-}
-
-function keyof<T>(field: any, matches: any, arg2: string) {
-    throw new Error('Function not implemented.');
-}
+// export const ArpDataWhere = <T>(field:<Kt, in T>(_kt: keyof T) => Kt, matches:<K, in ArpData>(_key: keyof ArpData) => K, _self: Array<ArpData>):Array<ArpData> => {
+//     return (_self).filter(item => {
+//         matches === field
+//     })
+// }
 
