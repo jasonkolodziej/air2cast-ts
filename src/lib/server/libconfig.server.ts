@@ -9,6 +9,7 @@ export function withComments(input:string):string {
 }
 export const Parse = (arg0: string) => { 
     let o = Group.parse(`{${stripComments(arg0)}}`) as object;
-    // Object.keys().fir
-    return withComments(arg0)
+    o = Object.assign(o, {[Object.keys(o).at(0) as string]:withComments(arg0)})
+    // console.log()
+    return o
 };
