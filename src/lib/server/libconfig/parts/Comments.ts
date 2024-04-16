@@ -87,16 +87,16 @@ export const ParseCommentedSetting = Parse.query(function* () {
             const cmnt = a.value as {type: string; key: string; value:any;};
             // console.log(cmnt);
             group = Object.assign(group, Object.assign(
-                {[a.value[0].key as string]: {
-                    '_value': a.value[0].value,
-                    ['comment']: b.value[0]
+                {[(a.value as unknown as Array<{type: string; key: string; value:any;}>)[0].key as string]: {
+                    '_value': (a.value as unknown as Array<{type: string; key: string; value:any;}>)[0].value,
+                    ['comment']: (b.value as unknown as Array<any>)[0]
                 }
             }))
         }
     }
     return Parse.return(
         group        
-    )
+    ) as any
 })
 
 
@@ -107,6 +107,7 @@ export const RemoveComments = Parse.query(function* () {
         yield Parse.char("/").or(Parse.char("#"))
         yield Parse.regex(/[^\#\/]+/)
     }).many()) as unknown as string[]
+    console.log(content.filter(item => typeof item !== "object").join(''))
     return Parse.return(
         content.filter(item => typeof item !== "object").join('')
     ) as any;
