@@ -69,7 +69,7 @@ export const ParseComments = Parse.query(function* () {
 
 export const ParseCommentedSetting = Parse.query(function* () {
     const content = (yield Parse.queryOr(function* () {
-        yield Comment
+        yield Comment //.many()
         yield Parse.regex(/[^\#\/]+/)
     }).many()) as unknown as {type: string; comment: string;}[]
     let values = content.filter(item => typeof item === "object") 
@@ -77,11 +77,11 @@ export const ParseCommentedSetting = Parse.query(function* () {
     // console.log(values)
     for (let i = 0; i < values.length; i++) {
         const value = values[i];
-        let a = (Setting.atLeastOnce().tryParse(value.comment) as unknown) as Result<{type: string; key: string; value:any;}>
-        const b = ParseComments.tryParse(value.comment) as unknown as Result<{type: string; comment: string;}>
+        let a = (Setting.atLeastOnce().tryParse(value.comment as string) as unknown) as Result<{type: string; key: string; value:any;}>
+        const b = ParseComments.tryParse(value.comment as string) as unknown as Result<{type: string; comment: string;}>
         if (!a.wasSuccessful && b.wasSuccessful) {
             // console.log(a)
-            group = Object.assign(group, {['comment']:value});
+            group = Object.assign(group, {['description']:value});
         } else if (a.wasSuccessful && b.wasSuccessful) {
             // console.log(a)
             const cmnt = a.value as {type: string; key: string; value:any;};
@@ -89,7 +89,7 @@ export const ParseCommentedSetting = Parse.query(function* () {
             group = Object.assign(group, Object.assign(
                 {[(a.value as unknown as Array<{type: string; key: string; value:any;}>)[0].key as string]: {
                     '_value': (a.value as unknown as Array<{type: string; key: string; value:any;}>)[0].value,
-                    ['comment']: (b.value as unknown as Array<any>)[0]
+                    ['description']: (b.value as unknown as Array<any>)[0]
                 }
             }))
         }
