@@ -56,7 +56,8 @@ export const ArpDataCache = (data: string):Array<ArpData> => data.
             item => 
                 isIP(item.at(1)?.replace("(","").replace(")","") as string) === 4 &&
                 parseMAC(item.at(2) as string)
-        ).map(editedLine => 
+        ).map(editedLine => {
+          console.log(editedLine)
             editedLine.length > 0 ? Object.assign({
                 hw_type: editedLine.pop()?.replace('[','').replace(']',''),
                 hostname: editedLine.reverse().pop(), // .at(0),
@@ -64,7 +65,7 @@ export const ArpDataCache = (data: string):Array<ArpData> => data.
                 mac_address: parseMAC(editedLine.pop() as string), //.at(2),
                 interface_name: editedLine.pop(), //.at(3),
                 scope: editedLine,
-            }) : null
+            }) : null}
     ).filter(item => item != null);
 
 

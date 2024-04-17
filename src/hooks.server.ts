@@ -1,10 +1,5 @@
 // ? https://kit.svelte.dev/docs/hooks#server-hooks
 import type { Handle, HandleFetch } from '@sveltejs/kit';
-import {discoverChromeCast, IsTv, StartStopNotify} from '$lib/server/mdns.server';
-import { Parse } from '$lib/server/libconfig.server';
-import { toLibConfigFile } from '$lib/server/libconfig/toLibConfigFile';
-import { arpAll, ArpDataCache, arpDevice } from '$lib/server/arp.server';
-import { parsedJson } from '$lib/server/libconfig.server';
 
 export const handle: Handle = async ({ event, resolve }) => {
     console.log("Hooks.server.HANDLE");

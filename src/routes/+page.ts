@@ -8,13 +8,14 @@ export const load: PageLoad = async ({params, parent, data}) => {
     console.log("PageLoad");
     const pageData = data;
     const layoutData = await parent();
-    console.log(pageData)
+    // console.log(pageData)
 
     return {
         sections: [
             { slug: 'profile', title: 'Profile' },
             { slug: 'notifications', title: 'Notifications' }
-        ]
+        ],
+        pageData: pageData
     };
 }
 

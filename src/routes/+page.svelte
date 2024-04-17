@@ -11,4 +11,4 @@
 <!-- <Space/> -->
 <h2>Configure</h2>
 
-<Configuration items={data}/>
+<Configuration items={data.pageData.data}/>
