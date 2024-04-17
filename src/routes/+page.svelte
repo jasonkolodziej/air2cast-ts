@@ -3,6 +3,7 @@
 	import { Form, Checkbox, Button, Column, Row } from "carbon-components-svelte";
     import type { PageData } from './$types';
 	import Device from "$lib/device/Device.svelte";
+	import DeviceDetails from "$lib/device/DeviceDetails.svelte";
   export let data: PageData;
 </script>
 
@@ -26,11 +27,16 @@
   <Column padding ><Device/></Column>
   <Column padding ><Device/></Column>
 </Row>
+
+<Row padding>
+  <Column>
+    <h1>Device Details</h1>
+  </Column>
+</Row>
 <Row>
-  <Column padding><Device/></Column>
-  <Column padding ><Device/></Column>
-  <Column padding ><Device/></Column>
-  <Column padding ><Device/></Column>
+  <Column>
+    <DeviceDetails/>
+  </Column>
 </Row>
 
 <Row padding>
