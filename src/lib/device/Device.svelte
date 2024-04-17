@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { Button, ExpandableTile, ButtonSet,
-    Accordion, AccordionItem } from 'carbon-components-svelte';
-      import { CatalogPublish, Settings } from 'carbon-icons-svelte';
+    import { Button, ExpandableTile, ButtonSet, Tag,
+    Accordion, AccordionItem, DataTable } from 'carbon-components-svelte';
+      import { CatalogPublish, Checkmark, Information, PlayFilled, Settings } from 'carbon-icons-svelte';
       import type { KV } from '../../routes/+page.server';
         export let items:Array<{title: string; description: string[]; children: Map<string, KV>}> = []
   
@@ -30,7 +30,11 @@
         () => console.log("Hello world")}>
         <h4>Device Name</h4>
         </a>
-      <br /><br />
+      
+      <Tag type="green" icon={Checkmark}>Active</Tag>
+      <Tag type="high-contrast">Deactivated</Tag>
+      <Tag type="cyan"  icon={PlayFilled}>In Use</Tag>
+<br /><br />
       <!-- <ButtonSet stacked> -->
         <Button
         icon={Settings}
@@ -53,6 +57,8 @@
           }}>
           Logs
         </Button>
+        <br/>
+        <br/>
       <!-- </ButtonSet> -->
       
       <!-- <svelte:fragment slot="skip-to-content"> -->
@@ -61,17 +67,57 @@
     </div>
     <div slot="below">
         <br/>
-        <!-- <Accordion align="start" slot="below">
-            <AccordionItem title="Natural Language Classifier" open={aopen}>
-              <p>
-                Natural Language Classifier uses advanced natural language processing and
-                machine learning techniques to create custom classification models. Users
-                train their data and the service predicts the appropriate category for the
-                inputted text.
-              </p>
-            </AccordionItem>
-          </Accordion> -->
-        Below the fold content here
+        <DataTable
+        size="compact"
+        headers={[
+          { key: "name", value: "Name" },
+          { key: "protocol", value: "Protocol" },
+        ]}
+        rows={[
+          {
+            id: "a",
+            name: "Load Balancer 3",
+          },
+          {
+            id: "b",
+            name: "Load Balancer 1",
+            protocol: "HTTP",
+            port: 443,
+            rule: "Round robin",
+          },
+          {
+            id: "c",
+            name: "Load Balancer 2",
+            protocol: "HTTP",
+            port: 80,
+            rule: "DNS delegation",
+          },
+          {
+            id: "d",
+            name: "Load Balancer 6",
+            protocol: "HTTP",
+            port: 3000,
+            rule: "Round robin",
+          },
+          {
+            id: "e",
+            name: "Load Balancer 4",
+            protocol: "HTTP",
+            port: 443,
+            rule: "Round robin",
+          },
+          {
+            id: "f",
+            name: "Load Balancer 5",
+            protocol: "HTTP",
+            port: 80,
+            rule: "DNS delegation",
+          },
+        ]}
+      />
+      <br/>
+      <br/>
+        <!-- Below the fold content here -->
     </div>
   </ExpandableTile>
   

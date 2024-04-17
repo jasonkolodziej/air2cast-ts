@@ -7,19 +7,42 @@
 </script>
 
 <!-- <pre>{data.sections}</pre> -->
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
-<!-- <Space/> -->
-<h2>Devices</h2>
 <Row>
   <Column>
-    <Device></Device>
+<h1>Welcome to IBM</h1>
+<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+</Column>
+</Row>
+<!-- <Space/> -->
+<Row padding>
+  <Column>
+    <h1>Devices</h1>
   </Column>
-  <Column><Device></Device></Column>
-  <Column>Column</Column>
-  <Column>Column</Column>
 </Row>
 
-<h3>Configure</h3>
+<Row>
+  <Column padding><Device/></Column>
+  <Column padding ><Device/></Column>
+  <Column padding ><Device/></Column>
+  <Column padding ><Device/></Column>
+</Row>
+<Row>
+  <Column padding><Device/></Column>
+  <Column padding ><Device/></Column>
+  <Column padding ><Device/></Column>
+  <Column padding ><Device/></Column>
+</Row>
 
-<Configuration items={data.pageData.data}/>
+<Row padding>
+  <Column>
+    <h1>Configure</h1>
+  </Column>
+</Row>
+
+<Row>
+  <Column>
+    <Configuration items={data.pageData.data}/>
+  </Column>
+</Row>
+
+

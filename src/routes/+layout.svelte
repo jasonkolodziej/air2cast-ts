@@ -10,7 +10,7 @@
     export let data: LayoutData;
     let sideMenu = data.sections;
     let headMenu = data.sections;
-    let headerVals: HeaderProps = {company: "Company", platformName:"", persistentHamburgerMenu: true, href:"/"}
+    let headerVals: HeaderProps = {company: "International", platformName:"Business of Music", persistentHamburgerMenu: true, href:"/"}
 </script>
 
 <Theme
@@ -28,7 +28,7 @@
 <!--            <a href="/settings/{section.slug}">{section.title}</a>-->
 <!--        {/each}-->
 <!--    </div>-->
-    <Grid padding>
+    <Grid fullWidth>
         <slot></slot>
     </Grid>
 </Content>
