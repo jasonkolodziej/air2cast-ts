@@ -1,6 +1,6 @@
 <script lang="ts">
   import { DataTable, Toolbar, ToolbarBatchActions, ToolbarContent, ToolbarMenu, ToolbarMenuItem, ToolbarSearch } from "carbon-components-svelte";
-	import { Form,Button, ExpandableTile, // Icon,
+	import { Form,Button, ExpandableTile, CodeSnippet, // Icon,
     Tabs, Tab, TabContent } from 'carbon-components-svelte';
     import { Save, CheckmarkFilled } from 'carbon-icons-svelte';
 	import type { KV } from '../../routes/+page.server';
@@ -42,13 +42,14 @@
       {#each items as item}
       <TabContent>
         <DataTable
+          sortable
           batchExpansion
           batchSelection
           bind:expandedRowIds
           bind:selectedRowIds
           headers={[
             { key: "name", value: "Name" },
-            { key: "icon", value: "Active" },
+            { key: "icon", value: "Active", sort: (a, b) => b - a, },
             { key: "_value", value: "Value" },
             { key: "type", value: "Type" },
             { key: "_description", value: "Description" },
@@ -81,7 +82,15 @@
           )}
         >
           <svelte:fragment slot="expanded-row" let:row>
-            <pre> {JSON.stringify(row, null, 0)}</pre>
+            <CodeSnippet 
+              wrapText
+              type="multi" 
+              copy={() => {}} 
+              showMoreText="Expand"
+              showLessText="Collapse">
+              {JSON.stringify(row, null, 9)}
+            </CodeSnippet>
+            <!-- <pre> </pre> -->
           </svelte:fragment>
         
         <strong slot="title">{item.title}</strong>
