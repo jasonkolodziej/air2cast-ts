@@ -57,7 +57,7 @@ export const ArpDataCache = (data: string):Array<ArpData> => data.
                 isIP(item.at(1)?.replace("(","").replace(")","") as string) === 4 &&
                 parseMAC(item.at(2) as string)
         ).map(editedLine => {
-          console.log(editedLine)
+          // console.debug(editedLine)
             editedLine.length > 0 ? Object.assign({
                 hw_type: editedLine.pop()?.replace('[','').replace(']',''),
                 hostname: editedLine.reverse().pop(), // .at(0),
