@@ -12,6 +12,6 @@ export const load: LayoutServerLoad = ({ cookies, params, route }) => { //? Layo
     // console.info(routes)
     // const readableStream = createReadableStream(PWD+"/src/lib/server/spsConf.json")
     return {
-        data: routes // JSON.parse(fs.readFileSync(PWD+"/src/lib/server/spsConf.json", 'utf-8'))
+        data: routes
     }
 };

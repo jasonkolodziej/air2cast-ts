@@ -28,22 +28,8 @@
   <Column padding ><Device/></Column>
 </Row> -->
 
-<Row padding>
-  <Column>
-    <h1>Device Details</h1>
-  </Column>
-</Row>
-<Row>
-  <Column>
-    <DeviceDetails/>
-  </Column>
-</Row>
 
-<Row padding>
-  <Column>
-    <h1>Configure</h1>
-  </Column>
-</Row>
+
 
 <!-- <Row>
   <Column>

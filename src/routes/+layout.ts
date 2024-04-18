@@ -11,7 +11,13 @@ export const load: LayoutLoad = async ({params,
 	console.log(data.data)
 	const sections:Array<{slug: string; title: string; text:string; href:string;}> = new Array()
 	data.data.forEach(item => 
-        sections.push({slug: item, title: toProperCase(item), text: toProperCase(item), href: '/'+item, })
+        sections.push(
+			{
+				slug: item, 
+				title: toProperCase(item), 
+				text: toProperCase(item), 
+				href: '/'+item, 
+			})
         )
 	return { 
 		data: sections,

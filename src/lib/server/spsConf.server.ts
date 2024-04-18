@@ -1,5 +1,6 @@
 // ? Interfaces of `spsConfig.json`
-
+import { PWD } from '$env/static/private';
+import * as fs from 'fs';
 export interface Comment {
     // _description: Array<String> | Description;
     '$style'?: string;
@@ -16,4 +17,30 @@ export interface KV {
     _value: any;
     '$type': String;
     _description: Comment;
+}
+
+const preLayoutData = JSON.parse(fs.readFileSync(PWD+"/src/lib/server/spsConf.json", 'utf-8'))
+
+export const modifiedData = () => {
+    const data  = Array<{title: string; description: string[]; children: Map<String,KV>}>()
+    // console.info(layOutdata)
+    const dataObj = Object(preLayoutData);
+    Object.entries(dataObj).forEach(entry => {
+        const props = entry[1] as Object;
+        const comments = (props as any)['_comments'] as object
+        const des = (comments as any)['_description'] as string[]
+        let childsMap = new Map<String, KV>()
+        const childs = Object.entries(props) // .filter((elem) => { elem[0] !== '_comments' })
+        // console.info(childs)
+        for (let [key, value] of childs) {
+            if (key == '_comments') {
+                continue
+            }
+            // console.log(key, value);
+            childsMap = childsMap.set(key, (value as KV))
+        }
+        // console.log(comments)
+        data.push({title: entry[0], description: des, children: childsMap})
+    })
+    return data
 }
