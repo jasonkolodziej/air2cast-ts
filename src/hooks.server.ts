@@ -1,13 +1,18 @@
 // ? https://kit.svelte.dev/docs/hooks#server-hooks
-import type { Handle, HandleFetch } from '@sveltejs/kit';
+import { arpAll } from '$lib/server/arp.server';
+import { discoverChromeCast, StartStopNotify } from '$lib/server/mdns.server';
+import { json, type Handle, type HandleFetch, type ResolveOptions } from '@sveltejs/kit';
+// import {
+// 	createReadableStream,
+// 	getRequest,
+// 	setResponse
+// } from '@sveltejs/kit/node';
+// import { sequence } from '@sveltejs/kit/hooks';
 
 export const handle: Handle = async ({ event, resolve }) => {
-    console.log("Hooks.server.HANDLE");
-    // const cast = discoverChromeCast;
-
-    // const arpData = arpAll();
-    // let devices = StartStopNotify(cast.onAvailable, cast.onUnavailable, cast.onUpdate, arpData)
-    
+    console.debug("hooks.server.handle");
+    // const devices = await handleDiscoverDevices({event, resolve});
+    // console.debug(devices)
     // devices.subscribe(val => console.log(val))
 
     // const ipTest = '192.168.2.152'
@@ -16,15 +21,6 @@ export const handle: Handle = async ({ event, resolve }) => {
     // gl-mt3000.localdomain (192.168.2.61) at 9e:83:c4:3d:ce:3d on en0 ifscope [ethernet]
     // let oo = Parse(test) as object
     // console.log(oo)
-
-    // console.log("ll", ll);
-    // cast.onAvailable();
-
-    // const response = await fetch(
-    //   '../lib/server/spsConf.json'
-    // )
-    // const currencies = await response.json()
-    // return response;
 	if (event.url.pathname.startsWith('/custom')) {
 		return new Response('custom response');
 	}
@@ -34,6 +30,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 };
 
 export const handleFetch: HandleFetch = async ({ request, fetch }) => {
+    console.debug("hooks.server.handleFetch");
 	if (request.url.startsWith('https://api.yourapp.com/')) {
 		// clone the original request, but change the URL
 		request = new Request(
@@ -44,3 +41,24 @@ export const handleFetch: HandleFetch = async ({ request, fetch }) => {
 
 	return fetch(request);
 };
+
+// const handleDiscoverDevices: Handle = async ({ event, resolve }) => {
+//     console.debug("hooks.server.handleDiscoverDevices")
+//     const cast = discoverChromeCast;
+//     // const arpData = await handleArpAll({event, resolve});
+//     const arpData = arpAll();
+//     console.debug(arpData)
+//     const devices = StartStopNotify(cast.onAvailable, cast.onUnavailable, cast.onUpdate, arpData)
+//     return json('')
+// };
+
+// const handleArpAll: Handle = async ({ event, resolve }) => {
+//     console.debug("hooks.server.handleArpAll")
+
+//     // const arpData = arpAll();
+    
+    
+//     return await resolve(event)
+// };
+
+// export const handleSequence = sequence(handleArpAll, handleDiscoverDevices);

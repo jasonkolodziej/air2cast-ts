@@ -4,11 +4,11 @@
 import type { PageLoad } from "./$types";
 // export const prerender = true;
 
-export const load: PageLoad = async ({params, parent, data}) => {
-    console.log("PageLoad");
+export const load: PageLoad = async ({params, parent, data, route}) => {
+    console.debug(`${route.id}.PageLoad`);
     const pageData = data;
     const layoutData = await parent();
-    // console.log(pageData)
+    console.log(pageData)
 
     return {
         sections: [

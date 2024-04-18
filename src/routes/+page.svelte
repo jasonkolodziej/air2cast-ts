@@ -15,7 +15,7 @@
 </Column>
 </Row>
 <!-- <Space/> -->
-<Row padding>
+<!-- <Row padding>
   <Column>
     <h1>Devices</h1>
   </Column>
@@ -26,7 +26,7 @@
   <Column padding ><Device/></Column>
   <Column padding ><Device/></Column>
   <Column padding ><Device/></Column>
-</Row>
+</Row> -->
 
 <Row padding>
   <Column>
@@ -45,10 +45,10 @@
   </Column>
 </Row>
 
-<Row>
+<!-- <Row>
   <Column>
     <Configuration items={data.pageData.data}/>
   </Column>
-</Row>
+</Row> -->
 
 

@@ -3,11 +3,15 @@ import { PWD } from "$env/static/private";
 import * as fs from "fs";
 // import { dataArray } from "$lib/server/libconfig.server";
 
-export const load: LayoutServerLoad = ({ cookies, params }) => { //? LayoutData
-    console.info("LayoutServerLoad")
+export const load: LayoutServerLoad = ({ cookies, params, route }) => { //? LayoutData
+    console.debug(`${route.id}.LayoutServerLoad`)
+    // console.debug(request)
 	const sessionid = cookies.get('sessionid');
+    const dirContent = fs.readdirSync(PWD+"/src/routes")// .filter(val => val.valueOf())
+    const routes = dirContent.filter((content) => !content.endsWith('.svelte') && !content.endsWith('.ts'))
+    // console.info(routes)
     // const readableStream = createReadableStream(PWD+"/src/lib/server/spsConf.json")
     return {
-        data: JSON.parse(fs.readFileSync(PWD+"/src/lib/server/spsConf.json", 'utf-8'))
+        data: routes // JSON.parse(fs.readFileSync(PWD+"/src/lib/server/spsConf.json", 'utf-8'))
     }
 };
