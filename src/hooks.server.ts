@@ -1,7 +1,8 @@
 // ? https://kit.svelte.dev/docs/hooks#server-hooks
 import { arpAll } from '$lib/server/arp.server';
-import { discoverChromeCast, StartStopNotify } from '$lib/server/mdns.server';
+import { type DeviceServices, discoverChromeCast, StartStopNotify, StartStopNotifySlug, type DeviceInfo } from '$lib/server/mdns.server';
 import { json, type Handle, type HandleFetch, type ResolveOptions } from '@sveltejs/kit';
+import { readonly } from 'svelte/store';
 // import {
 // 	createReadableStream,
 // 	getRequest,
@@ -25,7 +26,22 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return new Response('custom response');
 	}
 
+	if (event.url.pathname.startsWith('/devices') && event.isDataRequest) {
+		console.debug(event)
+		const cast = discoverChromeCast;
+		const arpData = arpAll();
+		// console.debug(arpData)
+		// const devices = 
+		event.locals = {devices: StartStopNotify(cast.onAvailable, cast.onUnavailable, cast.onUpdate, arpData)}
+		// return await resolve(event, )
+		// const readonlyDevices = readonly(devices);
+		// return new Promise((res) => 
+		// 	readonlyDevices.subscribe(val => res(json(val)))
+		// )
+	}
+	console.debug('resolving event')
 	const response = await resolve(event);
+	console.debug('returning response')
 	return response;
 };
 
@@ -42,15 +58,16 @@ export const handleFetch: HandleFetch = async ({ request, fetch }) => {
 	return fetch(request);
 };
 
-// const handleDiscoverDevices: Handle = async ({ event, resolve }) => {
-//     console.debug("hooks.server.handleDiscoverDevices")
-//     const cast = discoverChromeCast;
-//     // const arpData = await handleArpAll({event, resolve});
-//     const arpData = arpAll();
-//     console.debug(arpData)
-//     const devices = StartStopNotify(cast.onAvailable, cast.onUnavailable, cast.onUpdate, arpData)
-//     return json('')
-// };
+const handleDiscoverDevices: Handle = async ({ event, resolve }) => {
+    console.debug("hooks.server.handleDiscoverDevices")
+    const cast = discoverChromeCast;
+    const arpData = arpAll();
+    // console.debug(arpData)
+    const devices = StartStopNotify(cast.onAvailable, cast.onUnavailable, cast.onUpdate, arpData)
+	const readonlyDevices = readonly(devices)
+	return json(readonlyDevices)
+    // return new Promise(json(readonlyDevices))
+};
 
 // const handleArpAll: Handle = async ({ event, resolve }) => {
 //     console.debug("hooks.server.handleArpAll")

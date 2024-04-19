@@ -8,7 +8,7 @@ export const load: PageLoad = async ({params, parent, data, route}) => {
     console.debug(`${route.id}.PageLoad`);
     const pageData = data;
     const layoutData = await parent();
-    console.log(pageData)
+    // console.log(layoutData)
 
     return {
         sections: [

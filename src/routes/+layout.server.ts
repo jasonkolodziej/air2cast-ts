@@ -3,7 +3,7 @@ import { PWD } from "$env/static/private";
 import * as fs from "fs";
 // import { dataArray } from "$lib/server/libconfig.server";
 
-export const load: LayoutServerLoad = ({ cookies, params, route }) => { //? LayoutData
+export const load: LayoutServerLoad = ({ fetch, cookies, params, route }) => { //? LayoutData
     console.debug(`${route.id}.LayoutServerLoad`)
     // console.debug(request)
 	const sessionid = cookies.get('sessionid');

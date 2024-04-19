@@ -1,10 +1,7 @@
 <script lang="ts">
-	import Configuration from "$lib/configuration/Configuration.svelte";
-	import { Form, Checkbox, Button, Column, Row } from "carbon-components-svelte";
+	import { Column, Row } from "carbon-components-svelte";
     import type { PageData } from './$types';
-	import Device from "$lib/device/Device.svelte";
-	import DeviceDetails from "$lib/device/DeviceDetails.svelte";
-  export let data: PageData;
+	  export let data: PageData;
 </script>
 
 <!-- <pre>{data.sections}</pre> -->

@@ -7,6 +7,10 @@ export const load: PageServerLoad = async ({ params, parent, route }) => { //? P
     console.debug(`${route.id}.PageServerLoad`)
     const layOutdata = await parent()
     return {
-        data: layOutdata
+        data: [
+            {device: {
+                configuration: layOutdata
+            }}
+        ]
     }
 };

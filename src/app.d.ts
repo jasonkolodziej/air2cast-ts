@@ -8,11 +8,12 @@ declare global {
 		// set(env, )
 		// interface Error {}
 		interface Locals {
+			
 			// files: ["./lib/server/spsConf.json"]
 		}
 		// interface PageData {}
 		// interface PageState {}
-		// interface Platform {}
+		interface Platform {}
 	}
 }
 

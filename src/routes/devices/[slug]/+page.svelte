@@ -12,7 +12,7 @@
   </Row>
 <Row>
     <Column>
-        <DeviceDetails/>
+        <!-- <DeviceDetails {data.device}/> -->
     </Column>
 </Row>
 
@@ -22,4 +22,9 @@
       <h1>Configure</h1>
     </Column>
 </Row>
-  
+
+<Row>
+  <Column>
+    <!-- <Configuration items={data.data}/> -->
+  </Column>
+</Row>

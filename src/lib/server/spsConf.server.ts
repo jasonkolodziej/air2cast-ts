@@ -21,6 +21,8 @@ export interface KV {
 
 const preLayoutData = JSON.parse(fs.readFileSync(PWD+"/src/lib/server/spsConf.json", 'utf-8'))
 
+export const spsDataObj = Object(preLayoutData);
+
 export const modifiedData = () => {
     const data  = Array<{title: string; description: string[]; children: Map<String,KV>}>()
     // console.info(layOutdata)

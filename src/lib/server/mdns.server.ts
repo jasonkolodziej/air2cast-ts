@@ -6,6 +6,7 @@ import type { PersistentClientOptions } from '@foxxmd/chromecast-client/dist/cjs
 import { type MAC } from './mac/MAC';
 import type { Subscribable } from 'atvik';
 import { ArpDataCache, arpDevice, type ArpData } from './arp.server'
+import { spsDataObj } from './spsConf.server'
 // import { Injectable } from ''
 
 /**
@@ -14,7 +15,7 @@ import { ArpDataCache, arpDevice, type ArpData } from './arp.server'
         // Listen for services as they become available
         // export const onAvailable = discoverChromeCast.onAvailable
 
-        // discoverChromeCast.(service => {
+        // discoverChromeCast.onAvailable(service => {
         //     console.log()
         //     // Service available
         //   });
@@ -41,15 +42,20 @@ export const onCastUnavail:Available = discoverChromeCast.onUnavailable
 
 
 
-export interface DeviceServices extends MDNSService {
+export interface DeviceServices extends DeviceInfo {
     receiverCtrl?: ReceiverController.Receiver;
     client?: PersistentClient;
-    readonly mac_address?: MAC | String | EventListener;
-    readonly configFile?: object;
+    // readonly mac_address?: MAC | String | EventListener;
+    // readonly configuration?: object;
     onAvailable?: Subscriber<MDNSService>; // set | listener: Listener<MDNSServiceDiscovery, [MDNSService]>
     // onUnAvailable?: Invalidator<MDNSService>;
     onUpdate?: Updater<MDNSService>; // update
     onDestroy?: Unsubscriber; // unsubscribe
+}
+
+export interface DeviceInfo extends MDNSService {
+    readonly mac_address?: MAC | String | EventListener;
+    readonly configuration?: object;
 }
 
 export const ToDevice = (_eval: MDNSService, 
@@ -67,6 +73,7 @@ export const ToDevice = (_eval: MDNSService,
     return {
         client: new PersistentClient(info),
         mac_address: mac?.mac_address,
+        configuration: spsDataObj, // TODO: check to see if there is one avail. for device
         ..._eval,
     }
 }
@@ -90,6 +97,10 @@ export const ToDevice = (_eval: MDNSService,
 //         };
 //         return _connect(newDS).then((val:DeviceServices) => _old = val)  // : undefined) // update filter
 // }
+
+
+export type Slugs<T> = Map<String, T>;
+// export type Slug<K, T> = K keyof Slugs typeof T;
 
 export const StartStopNotify = (available: Available, 
     unAvailable: Available, 
@@ -122,6 +133,45 @@ export const StartStopNotify = (available: Available,
             unsub()
         })
         return device
+}
+
+
+
+export const StartStopNotifySlug = (available: Available, 
+    unAvailable: Available, 
+    update: Update,
+    arpData?: Readable<Array<ArpData>>): 
+    Writable<Array<DeviceServices>> => {
+        const slugs = (new Array<DeviceServices>)
+        const devices = writable(slugs)
+        let packets: ArpData[]
+        arpData?.subscribe((pktAry) => packets = pktAry)
+        available(service => {
+                    console.log("SERVICE AVAIL:")
+                    const d = ToDevice(service, packets)
+                    !IsTv(d) ? _connect(d).then((val:DeviceServices) => 
+                        { slugs.push(val); devices.set(slugs)}) : null
+                        // devices.set(slugs.push(val.name, val))) : null
+        })
+        update(service => {
+            console.log("SERVICE UPDATING:")
+            // devices.update((d) => d.set(service.name, ToDevice({...service, ...d}, packets)) )
+            devices.update((d) => d.map((ds) =>  ds.name === service.name ? ToDevice({...service, ...d}, packets): ds) )
+            // device.update(oldie => // ? Should we disconnect from client?
+            //     UpdateDevice(oldie, service, packets).then( 
+            //         (val:DeviceServices) => oldie = val
+            //     ).finally(()=> void);
+            // )
+        })
+        unAvailable(service => {
+            console.warn("SERVICE DEEMED UNAVAIL:", service)
+            const unsub = devices.subscribe(svc => {console.warn('unsubscribing')}, (some) => {
+                console.warn('Unsubscribe')
+                _disconnect(some?.filter( (ds) => ds.name === service.name).pop() as DeviceServices)
+        })
+            unsub()
+        })
+        return devices
 }
 
 
