@@ -1,32 +1,24 @@
-import { type Readable } from "svelte/store";
 import type { LayoutServerLoad } from "../$types";
-import type { DeviceServices } from "$lib/server/mdns.server";
-import { getContext, setContext } from "svelte";
+import { ToDeviceRecord } from "$lib/server/mdns.server";
+import type { MDNSServiceDiscovery } from "tinkerhub-mdns";
 
-export const load: LayoutServerLoad = async ({ fetch, cookies, params, route, isDataRequest, parent, locals }) => { //? LayoutData
-    console.debug(`${route.id}.LayoutServerLoad ${isDataRequest}`)
-    
-    // const data = await fetch('/devices', {method: 'GET'})
+export const load: LayoutServerLoad = async ({fetch,
+    cookies,
+    params,
+    route, 
+    isSubRequest,
+    isDataRequest, 
+    parent, //? layout.server.ts
+    locals }) => { //? LayoutData
+    console.debug(`${route.id}.LayoutServerLoad ${isDataRequest} ${isSubRequest}`)
+    const devices = locals.devices as MDNSServiceDiscovery
 	const sessionid = cookies.get('sessionid');
-    if (isDataRequest) {
-        await parent()
-        const { devices } = locals
-        const readOnlyDev = devices as Readable<DeviceServices>
-        const promise = new Promise<DeviceServices>((res) => {
-            readOnlyDev?.subscribe((val) => {
-                console.debug(val)
-                res((val as DeviceServices))
-            });
-        })
+    if(isDataRequest) {
         return {
-            stream: promise
+            data: devices.services.map(ToDeviceRecord)
         }
     }
-
     return {
-        data: {
-            devices: {}
-        }
-    }
-
+        data: []
+    };
 };

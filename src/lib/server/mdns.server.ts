@@ -33,12 +33,12 @@ import { spsDataObj } from './spsConf.server'
         discoverChromeCast.destroy();
  */
 
-export const discoverChromeCast = new MDNSServiceDiscovery(mdnsServiceOpt)
+export const discoverChromeCast = () => new MDNSServiceDiscovery(mdnsServiceOpt);
 export type Available = Subscribable<MDNSServiceDiscovery, [MDNSService]>
 export type Update = Subscribable<MDNSServiceDiscovery, [MDNSService, MDNSService]>
-export const onCastAvail: Available = discoverChromeCast.onAvailable // * emits MDNSService
-export const onCastUpdate: Update = discoverChromeCast.onUpdate
-export const onCastUnavail:Available = discoverChromeCast.onUnavailable
+// export const onCastAvail: Available = discoverChromeCast.onAvailable // * emits MDNSService
+// export const onCastUpdate: Update = discoverChromeCast.onUpdate
+// export const onCastUnavail:Available = discoverChromeCast.onUnavailable
 
 
 
@@ -51,6 +51,30 @@ export interface DeviceServices extends DeviceInfo {
     // onUnAvailable?: Invalidator<MDNSService>;
     onUpdate?: Updater<MDNSService>; // update
     onDestroy?: Unsubscriber; // unsubscribe
+}
+
+export interface DeviceRecord {
+    Id?: string;
+    ManufacturerDetails?: string;
+    FriendlyName?: string;
+    IPAddress?: string;
+    Port?: number;
+    Type?: DeviceType | unknown;
+    record: Map<string, string|boolean>;
+    // readonly record: MDNSService;
+}
+
+export const ToDeviceRecord = (m:MDNSService):DeviceRecord => {
+    return {
+        Id: m.data.get('id') as string,
+        ManufacturerDetails: m.data.get('md') as string,
+        FriendlyName: m.data.get('fn') as string,
+        IPAddress: m.addresses?.at(0)?.host,
+        Port: m.addresses?.at(0)?.port,
+        Type: DeviceType(m),
+        record: m.data,
+        // record: m
+    }
 }
 
 export interface DeviceInfo extends MDNSService {
@@ -136,48 +160,32 @@ export const StartStopNotify = (available: Available,
 }
 
 
-
-export const StartStopNotifySlug = (available: Available, 
-    unAvailable: Available, 
-    update: Update,
-    arpData?: Readable<Array<ArpData>>): 
-    Writable<Array<DeviceServices>> => {
-        const slugs = (new Array<DeviceServices>)
-        const devices = writable(slugs)
-        let packets: ArpData[]
-        arpData?.subscribe((pktAry) => packets = pktAry)
-        available(service => {
-                    console.log("SERVICE AVAIL:")
-                    const d = ToDevice(service, packets)
-                    !IsTv(d) ? _connect(d).then((val:DeviceServices) => 
-                        { slugs.push(val); devices.set(slugs)}) : null
-                        // devices.set(slugs.push(val.name, val))) : null
-        })
-        update(service => {
-            console.log("SERVICE UPDATING:")
-            // devices.update((d) => d.set(service.name, ToDevice({...service, ...d}, packets)) )
-            devices.update((d) => d.map((ds) =>  ds.name === service.name ? ToDevice({...service, ...d}, packets): ds) )
-            // device.update(oldie => // ? Should we disconnect from client?
-            //     UpdateDevice(oldie, service, packets).then( 
-            //         (val:DeviceServices) => oldie = val
-            //     ).finally(()=> void);
-            // )
-        })
-        unAvailable(service => {
-            console.warn("SERVICE DEEMED UNAVAIL:", service)
-            const unsub = devices.subscribe(svc => {console.warn('unsubscribing')}, (some) => {
-                console.warn('Unsubscribe')
-                _disconnect(some?.filter( (ds) => ds.name === service.name).pop() as DeviceServices)
-        })
-            unsub()
-        })
-        return devices
-}
-
-
 export const IsTv = <T extends MDNSService>(device: T):boolean|undefined => {
     const key = "fn"
     return device.data.get(key)?.toString().toLowerCase().includes('tv')
+}
+
+export type DeviceType = keyof typeof DeviceTypes;
+enum DeviceTypes {
+    TV = 'tv',
+    GROUP = 'group',
+    SPEAKER = 'speaker'
+}
+export const DeviceType = <T extends MDNSService>(device: T): (DeviceType|unknown) => {
+    if (device.data.get('md')?.toString().toLowerCase().includes(DeviceTypes.GROUP)) {
+        return DeviceTypes.GROUP;
+    }
+    if (device.data.get('fn')?.toString().toLowerCase().includes(DeviceTypes.TV)) {
+        return DeviceTypes.TV;
+    }
+    if (device.data.get('fn')?.toString().toLowerCase().includes(DeviceTypes.SPEAKER)) {
+        return DeviceTypes.SPEAKER;
+    }
+}
+
+export const DataId = <T extends MDNSService>(device: T):string => {
+    const key = "id"
+    return device.data.get(key) as string
 }
 
 

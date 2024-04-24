@@ -1,40 +1,30 @@
+import { DataId } from '$lib/server/mdns.server';
 import type { PageServerLoad } from './$types';
-import type { KV } from "$lib/server/spsConf.server";
-import type { DeviceServices } from '$lib/server/mdns.server';
-
-// const handleDiscoverDevices: Handle = async ({ event, resolve }) => {
-//     console.debug("hooks.server.handleDiscoverDevices")
-//     const cast = discoverChromeCast;
-//     const arpData = arpAll();
-//     // console.debug(arpData)
-//     const devices = StartStopNotify(cast.onAvailable, cast.onUnavailable, cast.onUpdate, arpData)
-// 	const readonlyDevices = readonly(devices)
-// 	return json(readonlyDevices)
-//     // return new Promise(json(readonlyDevices))
-// };
-
-export const load: PageServerLoad = async ({ fetch, params, parent, route, isDataRequest, locals }) => { //? PageData    
-    console.debug(`${route.id}.PageServerLoad ${isDataRequest}`)
-    // const getData = fetch('/devices', {method: 'POST'})
-    const layOutdata = await parent()
-    const promised = layOutdata.stream // as Promise<DeviceServices>
 
 
-    // const promised = await layOutdata.promise
-    console.log(promised)
-    
-    // layOutdata.data.forEach((ele) => {
-    //     const cur = ele as object;
-    //     console.error(cur)
-    // });
-	// return {
-	// 	post: await db.getPost(params.slug),
-	// };
+export const load: PageServerLoad = async ({params,
+    isSubRequest,
+    isDataRequest,
+    parent, // ? LayoutServerData from layout.server.ts
+    // data, //? PageServerData from page.server.ts
+    route}) => {
+    const { data } = await parent();
+    console.debug(`${route.id}.PageServerLoad ${isDataRequest} ${isSubRequest}`)
 
+
+    // const devices = new Array<{title: string; slug: string; href: string;}>()
+    // data?.forEach((service) => {
+    //     devices.push({
+    //         title: service.AssignedName,
+    //         href: DataId(service),
+    //         slug: service.name
+    //     })
+    // })
+
+    // const devices = await layOutdata.data;
+    // console.log(layOutdata)
     return {
-        // data: layOutdata
-        stream: {
-            promised
-        }
+        slug: route.id,
+        data: data
     }
 };

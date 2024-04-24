@@ -1,7 +1,10 @@
 <script lang="ts">
+	import type { DeviceRecord } from "$lib/server/mdns.server";
     import { ContentSwitcher, Switch, Button, Toggle, 
         Breadcrumb, BreadcrumbItem,
          CodeSnippet, Column, Row } from "carbon-components-svelte";
+    
+    export let deviceData:DeviceRecord | undefined;
 
     let toggled = false;
     let selectedIndex = 1;
@@ -14,8 +17,8 @@
         <h2>Information</h2>
         <br/>
         <Breadcrumb>
-            <BreadcrumbItem href="/">Devices</BreadcrumbItem>
-            <BreadcrumbItem href="/reports/2019" isCurrentPage>DeviceName</BreadcrumbItem>
+            <BreadcrumbItem href="/devices">Devices</BreadcrumbItem>
+            <BreadcrumbItem href={'/devices/'+deviceData?.Id} isCurrentPage>{deviceData?.FriendlyName}</BreadcrumbItem>
         </Breadcrumb>
     </Column>
     <Column>

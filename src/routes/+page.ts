@@ -4,18 +4,20 @@
 import type { PageLoad } from "./$types";
 // export const prerender = true;
 
-export const load: PageLoad = async ({params, parent, data, route}) => {
+export const load: PageLoad = async ({params,
+     parent, // ? LayoutData from layout.ts
+     data, //? PageServerData from page.server.ts
+     route}) => {
     console.debug(`${route.id}.PageLoad`);
-    const pageData = data;
-    const layoutData = await parent();
-    // console.log(layoutData)
-
+    // const layoutData = await parent();
+    // console.debug('pageData', pageData)
+    // console.debug('layoutData', layoutData)
     return {
         sections: [
             { slug: 'profile', title: 'Profile' },
             { slug: 'notifications', title: 'Notifications' }
         ],
-        pageData: pageData
+        pageData: data.data
     };
 }
 

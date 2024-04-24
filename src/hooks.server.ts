@@ -3,6 +3,7 @@ import { arpAll } from '$lib/server/arp.server';
 import { type DeviceServices, discoverChromeCast, StartStopNotify, StartStopNotifySlug, type DeviceInfo } from '$lib/server/mdns.server';
 import { json, type Handle, type HandleFetch, type ResolveOptions } from '@sveltejs/kit';
 import { readonly } from 'svelte/store';
+import type { MDNSService } from 'tinkerhub-mdns/dist/types/service';
 // import {
 // 	createReadableStream,
 // 	getRequest,
@@ -10,8 +11,19 @@ import { readonly } from 'svelte/store';
 // } from '@sveltejs/kit/node';
 // import { sequence } from '@sveltejs/kit/hooks';
 
+const discovery = discoverChromeCast();
+
+// const discoveredData = () => {
+// 	const m = new Map<String, MDNSService>();
+// 	discovery.onAvailable((service) => {m.set(service.id, service)});
+// 	discovery.onUpdate((service) => {m.set(service.id, service)});
+// 	discovery.onUnavailable((service) => {m.delete(service.id)});
+// 	return m;
+// }
+
 export const handle: Handle = async ({ event, resolve }) => {
     console.debug("hooks.server.handle");
+	console.debug('event.locals', event.locals)
     // const devices = await handleDiscoverDevices({event, resolve});
     // console.debug(devices)
     // devices.subscribe(val => console.log(val))
@@ -27,21 +39,21 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	if (event.url.pathname.startsWith('/devices') && event.isDataRequest) {
-		console.debug(event)
-		const cast = discoverChromeCast;
-		const arpData = arpAll();
-		// console.debug(arpData)
-		// const devices = 
-		event.locals = {devices: StartStopNotify(cast.onAvailable, cast.onUnavailable, cast.onUpdate, arpData)}
+		// console.debug(event)
+		// const cast = discoverChromeCast;
+		// const arpData = arpAll();
+		event.locals.devices = discovery;
+
+		// event.locals.devices = StartStopNotify(cast.onAvailable, cast.onUnavailable, cast.onUpdate, arpData)
 		// return await resolve(event, )
 		// const readonlyDevices = readonly(devices);
 		// return new Promise((res) => 
 		// 	readonlyDevices.subscribe(val => res(json(val)))
 		// )
 	}
-	console.debug('resolving event')
+	console.debug('hooks.server.handle resolving event')
 	const response = await resolve(event);
-	console.debug('returning response')
+	console.debug('hooks.server.handle returning response')
 	return response;
 };
 

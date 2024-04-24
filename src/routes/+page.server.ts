@@ -3,12 +3,14 @@ import type { KV } from "$lib/server/spsConf.server";
 
 
 
-export const load: PageServerLoad = async ({ params, parent, route }) => { //? PageData    
-    const layOutdata = await parent();
-    console.debug(`${route.id}.PageServerLoad`)
-    // const devices = await layOutdata.data;
-    // console.log(layOutdata)
+export const load: PageServerLoad = async ({params,
+    isDataRequest,
+    parent, // ? LayoutServerData from layout.server.ts
+    // data, //? PageServerData from page.server.ts
+    route}) => {
+    const { data } = await parent();
+    console.debug(`${route.id}.PageServerLoad ${isDataRequest}`)
     return {
-        data: layOutdata
+        data: data
     }
 };
