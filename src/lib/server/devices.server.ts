@@ -33,7 +33,7 @@ export class Device {
                 this.receiver = ReceiverController.createReceiver(this.client);
             }
         )
-        this.resolveMac();
+        // this.resolveMac();
         // this.receiver = ReceiverController.createReceiver(this.client);
     }
 
