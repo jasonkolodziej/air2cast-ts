@@ -69,13 +69,33 @@ export const ArpDataCache = (data: string):Array<ArpData> => data.
     ).filter(item => item != null);
 
 
+export const ArpDataSig = (data: string):ArpData => data.split('\n').map(
+    line => line.split(' ')
+        .filter(piece => piece !== 'at' && piece !== 'on' && piece !== '')
+    ).filter(
+        item => 
+            isIP(item.at(1)?.replace("(","").replace(")","") as string) === 4 &&
+            parseMAC(item.at(2) as string)
+    ).map(editedLine => {
+      // console.debug(editedLine)
+        return {
+            hw_type: editedLine.pop()?.replace('[','').replace(']',''),
+            hostname: editedLine.reverse().pop(), // .at(0),
+            ip_address: editedLine.pop()?.replace('(','').replace(')',''), // .at(1)?.replace('(','').replace(')',''),
+            mac_address: parseMAC(editedLine.pop() as string), //.at(2),
+            interface_name: editedLine.pop(), //.at(3),
+            scope: editedLine,
+        } as ArpData}
+    ).pop() as ArpData;
+
+
 export const arpDevice = (ip:string) => {
   switch(isIP(ip))
   {
     case 6: return undefined
     case 4:
     default:
-      return exec(`arp -n ${ip}`)
+      return exec(`arp -n ${ip}`) // spawn(`arp`, [ '-n', ip])
   }
 }
 

@@ -61,7 +61,7 @@ export interface DeviceRecord {
     Port?: number;
     Type: DeviceType | unknown;
     Record: Map<string, string|boolean>;
-    readonly MacAddress?: MAC | String | EventListener;
+    readonly MacAddress?: MAC | string;
     readonly templateConfiguration?: object;
 }
 

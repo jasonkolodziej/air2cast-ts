@@ -31,7 +31,7 @@ export const modifiedData = (config?: object) => {
         const props = entry[1] as Object;
         const comments = (props as any)['_comments'] as object
         const des = (comments as any)['_description'] as string[]
-        let childsMap = new Map<String, KV>()
+        let childsMap = new Map<string, KV>()
         const childs = Object.entries(props) // .filter((elem) => { elem[0] !== '_comments' })
         // console.info(childs)
         for (let [key, value] of childs) {
