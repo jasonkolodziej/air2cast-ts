@@ -1,9 +1,9 @@
 // ? https://kit.svelte.dev/docs/hooks#server-hooks
 import { arpAll } from '$lib/server/arp.server';
-import { type DeviceServices, discoverChromeCast, StartStopNotify, StartStopNotifySlug, type DeviceInfo } from '$lib/server/mdns.server';
-import { json, type Handle, type HandleFetch, type ResolveOptions } from '@sveltejs/kit';
+import { discoverChromeCast, StartStopNotify, DeviceRecord } from '$lib/server/mdns.server';
+import { Devices } from '$lib/server/devices.server';
+import { json, type Handle, type HandleFetch } from '@sveltejs/kit';
 import { readonly } from 'svelte/store';
-import type { MDNSService } from 'tinkerhub-mdns/dist/types/service';
 // import {
 // 	createReadableStream,
 // 	getRequest,
@@ -11,7 +11,7 @@ import type { MDNSService } from 'tinkerhub-mdns/dist/types/service';
 // } from '@sveltejs/kit/node';
 // import { sequence } from '@sveltejs/kit/hooks';
 
-const discovery = discoverChromeCast();
+const discovery = new Devices(discoverChromeCast());
 
 // const discoveredData = () => {
 // 	const m = new Map<String, MDNSService>();

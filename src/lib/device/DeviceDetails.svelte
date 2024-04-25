@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { DeviceRecord } from "$lib/server/mdns.server";
+	import { json } from "@sveltejs/kit";
     import { ContentSwitcher, Switch, Button, Toggle, 
         Breadcrumb, BreadcrumbItem,
          CodeSnippet, Column, Row } from "carbon-components-svelte";
@@ -9,7 +10,7 @@
     let toggled = false;
     let selectedIndex = 1;
     $: length = toggled ? 1000 : 10;
-    $: code = Array.from({ length }, (_, i) => i + 1).join("\n");
+    $: code = JSON.stringify(deviceData, null, 4);
 </script>
 
 <Row padding>
@@ -34,6 +35,14 @@
 </Row>
 <Row>
     <Column aspectRatio="2x1">
+        <CodeSnippet 
+        wrapText
+        type="multi" 
+        copy={() => {}} 
+        showMoreText="Expand"
+        showLessText="Collapse"
+        {code}>
+    </CodeSnippet>
     </Column>
     <Column aspectRatio="2x1">
         <Toggle

@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import type { KV } from "$lib/server/spsConf.server";
+import { modifiedData, type KV } from "$lib/server/spsConf.server";
 
 
 export const load: PageServerLoad = async ({params,
@@ -10,7 +10,11 @@ export const load: PageServerLoad = async ({params,
     const layOutdata = await parent()
     const device = layOutdata.data.filter((record) => record.Id === params.slug).pop()
     return {
-        data: device,
+        data: {
+            device: device,
+            config: modifiedData(device?.templateConfiguration)
+        },
+        
         route: route.id
     }
 };

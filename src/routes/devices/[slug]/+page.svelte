@@ -2,6 +2,7 @@
 	import { Column, Row } from "carbon-components-svelte";
     import type { PageData } from './$types';
 	import DeviceDetails from "$lib/device/DeviceDetails.svelte";
+  import Configuration from '$lib/configuration/Configuration.svelte';
 	export let data: PageData;
   console.log(data.data);
 </script>
@@ -14,7 +15,7 @@
 
 <Row>
   <Column>
-    <DeviceDetails deviceData={data.data}/>
+    <DeviceDetails deviceData={data.data.device}/>
   </Column>
 </Row>
 
@@ -27,14 +28,6 @@
 
 <Row>
   <Column>
-      <slot name="configuration">
-
-      </slot>
-    <!-- <Configuration items={data.data}/> -->
+    <Configuration items={data.data.config}/>
   </Column>
 </Row>
-
-
-
-
-<!-- <Configuration items={data.data}/> -->

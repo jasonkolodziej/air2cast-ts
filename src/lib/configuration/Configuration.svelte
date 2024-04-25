@@ -4,7 +4,7 @@
     Tabs, Tab, TabContent } from 'carbon-components-svelte';
     import { Save, CheckmarkFilled } from 'carbon-icons-svelte';
 	import type { KV } from '../../routes/+page.server';
-	  export let items:Array<{title: string; description: string[]; children: Map<string, KV>}> = []
+	export let items:Array<{title: string; description: string[]; children: Map<string, KV>}> = []
 
   let open = false;
   let selected = 0;

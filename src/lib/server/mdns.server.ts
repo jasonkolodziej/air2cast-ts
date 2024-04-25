@@ -54,14 +54,15 @@ export interface DeviceServices extends DeviceInfo {
 }
 
 export interface DeviceRecord {
-    Id?: string;
-    ManufacturerDetails?: string;
-    FriendlyName?: string;
+    Id: string;
+    ManufacturerDetails: string;
+    FriendlyName: string;
     IPAddress?: string;
     Port?: number;
-    Type?: DeviceType | unknown;
-    record: Map<string, string|boolean>;
-    // readonly record: MDNSService;
+    Type: DeviceType | unknown;
+    Record: Map<string, string|boolean>;
+    readonly MacAddress?: MAC | String | EventListener;
+    readonly templateConfiguration?: object;
 }
 
 export const ToDeviceRecord = (m:MDNSService):DeviceRecord => {
@@ -72,8 +73,8 @@ export const ToDeviceRecord = (m:MDNSService):DeviceRecord => {
         IPAddress: m.addresses?.at(0)?.host,
         Port: m.addresses?.at(0)?.port,
         Type: DeviceType(m),
-        record: m.data,
-        // record: m
+        Record: new Map(m.data.entries()),
+        templateConfiguration: spsDataObj,
     }
 }
 
@@ -101,6 +102,8 @@ export const ToDevice = (_eval: MDNSService,
         ..._eval,
     }
 }
+
+
 
 // export const UpdateDevice = (_old: DeviceServices,
 //     _eval: MDNSService, 

@@ -23,10 +23,10 @@ const preLayoutData = JSON.parse(fs.readFileSync(PWD+"/src/lib/server/spsConf.js
 
 export const spsDataObj = Object(preLayoutData);
 
-export const modifiedData = () => {
+export const modifiedData = (config?: object) => {
     const data  = Array<{title: string; description: string[]; children: Map<String,KV>}>()
     // console.info(layOutdata)
-    const dataObj = Object(preLayoutData);
+    const dataObj = config ?? Object(preLayoutData);
     Object.entries(dataObj).forEach(entry => {
         const props = entry[1] as Object;
         const comments = (props as any)['_comments'] as object

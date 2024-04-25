@@ -1,9 +1,8 @@
 <script lang="ts">
     import { Button, ExpandableTile, Tag,
     DataTable } from 'carbon-components-svelte';
-      import { CatalogPublish, Checkmark, PlayFilled, Settings } from 'carbon-icons-svelte';
-      import type { KV } from '../../routes/+page.server';
-    import type { DeviceRecord } from '$lib/server/mdns.server';
+      import { CatalogPublish, Checkmark, Events, PlayFilled, Settings } from 'carbon-icons-svelte';
+      import type { DeviceRecord } from '$lib/server/mdns.server';
     export let deviceData:DeviceRecord;
     export let routeId:string;
     let aopen = false;
@@ -42,6 +41,7 @@
       <Tag type="green" icon={Checkmark}>Active</Tag>
       <Tag type="high-contrast">Deactivated</Tag>
       <Tag type="cyan"  icon={PlayFilled}>In Use</Tag>
+      <Tag icon={Events}></Tag>
 <br /><br />
       <!-- <ButtonSet stacked> -->
         <Button
