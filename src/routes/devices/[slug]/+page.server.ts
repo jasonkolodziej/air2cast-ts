@@ -8,11 +8,12 @@ export const load: PageServerLoad = async ({params,
     route}) => {    
     console.debug(`${route.id}=@${params.slug}.PageServerLoad ${isDataRequest}`)
     const layOutdata = await parent()
-    const device = layOutdata.data.filter((record) => record.Id === params.slug).pop()
+    const device = layOutdata.data.filter((record) => record.deviceData.Id === params.slug).pop()
     return {
         data: {
-            device: device,
-            config: modifiedData(device?.templateConfiguration)
+            device: device?.deviceData,
+            deviceStatus: await device?.deviceStatus,
+            config: modifiedData(device?.deviceData?.templateConfiguration)
         },
         
         route: route.id

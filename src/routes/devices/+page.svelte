@@ -10,7 +10,10 @@
 <!-- {#if data.data.data} -->
 <Row >
   {#each data.data as device}
-    <Column padding ><Device routeId={data.route} deviceData={device}/></Column>
+    <Column padding >
+      <Device device={device} routeId={data.route}/>
+      <!-- <Device routeId={data.route} deviceData={device.deviceData}/> -->
+    </Column>
   {/each}
 </Row>
 <!-- {/if} -->

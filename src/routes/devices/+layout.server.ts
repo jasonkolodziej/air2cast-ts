@@ -1,6 +1,6 @@
 import type { LayoutServerLoad } from "../$types";
 import { ToDeviceRecord, type DeviceRecord } from "$lib/server/mdns.server";
-import { serializeNonPOJOs, type Device, type Devices } from "$lib/server/devices.server";
+import { serializeNonPOJOs, type CastController, type Device, type Devices } from "$lib/server/devices.server";
 
 export const load: LayoutServerLoad = async ({fetch,
     cookies,
@@ -30,10 +30,29 @@ export const load: LayoutServerLoad = async ({fetch,
     //                 ...clean
     //             } as DeviceRecord;
     //     });
-    const strippedDevices = devices?.DeviceRecordArray(({templateConfiguration: undefined} as DeviceRecord))
-    if(isDataRequest) {
+    // const strippedDevices = devices?.DeviceRecordArray(({templateConfiguration: undefined} as DeviceRecord))
+    const mainDev = Array.from(devices?.Devices)//.filter((device) => (device.DeviceRecord.Type as string) !== 'tv');
+    const strippedDevices = mainDev?.map(device => {
         return {
-            data: structuredClone(strippedDevices)
+            deviceData: structuredClone({
+                ...device.DeviceRecord,
+                ...({templateConfiguration: undefined} as DeviceRecord),
+            }),
+            deviceStatus: device.Status(),
+            // receiver: structuredClone(device.CastController.receiver)
+        }
+    })
+    // const controllers = mainDev.map((device) => device.CastController);
+    // const firstController = controllers.at(0);
+    // const fristDevice = mainDev.at(0);
+    // const status =  await fristDevice?.Status();
+    // get the volume from the chromecast and unwrap the result
+    // const volume = (await firstController?.receiver?.getVolume()).unwrapAndThrow()
+    if(isDataRequest) {
+        // console.debug(fristDevice)
+        // console.debug(strippedDevices)
+        return {
+            data: strippedDevices
             // data: devices.services.map(ToDeviceRecord)
         }
     }

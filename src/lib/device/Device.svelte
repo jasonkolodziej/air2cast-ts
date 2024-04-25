@@ -2,9 +2,18 @@
     import { Button, ExpandableTile, Tag,
     DataTable } from 'carbon-components-svelte';
       import { CatalogPublish, Checkmark, Events, PlayFilled, Settings } from 'carbon-icons-svelte';
-      import type { DeviceRecord } from '$lib/server/mdns.server';
-    export let deviceData:DeviceRecord;
+	import type { ReceiverStatus } from '@foxxmd/chromecast-client';
+	import type { DeviceRecord } from '$lib/server/mdns.server';
+    interface device {
+      deviceData: DeviceRecord;
+      deviceStatus: ReceiverStatus;
+      // route: string;
+    }
+    export let device:device;
+    export const deviceData:DeviceRecord = device?.deviceData;
+    export let deviceStatus:ReceiverStatus = device?.deviceStatus;
     export let routeId:string;
+    export let deviceType:string = deviceData?.Type as string;
     let aopen = false;
     let open = false;
     let selected = 0;
@@ -19,6 +28,8 @@
           { key: "detail", value: "Detail" },
           { key: "val", value: "" },
     ];
+    console.log(deviceStatus);
+    // console.assert(deviceStatus?.applications !== undefined);
     // let rows:Array<{id: string; detail: string; val: any;}> = 
     // $: {
     //   console.log("expandedRowIds", expandedRowIds);
@@ -38,10 +49,18 @@
         <h4>{deviceData?.FriendlyName}</h4>
         </a>
       
-      <Tag type="green" icon={Checkmark}>Active</Tag>
-      <Tag type="high-contrast">Deactivated</Tag>
-      <Tag type="cyan"  icon={PlayFilled}>In Use</Tag>
-      <Tag icon={Events}></Tag>
+      {#if deviceType !== 'group'}
+        <Tag type="green" icon={Checkmark}>Active</Tag>
+        <Tag type="high-contrast">Deactivated</Tag>
+      {/if}
+      {#await deviceStatus then result}
+        {#if result.applications !== undefined}
+          <Tag type="cyan" icon={PlayFilled}>In Use</Tag>
+        {/if}   
+      {/await}
+      {#if deviceType === 'group'}
+        <Tag icon={Events}></Tag>
+      {/if}
 <br /><br />
       <!-- <ButtonSet stacked> -->
         <Button

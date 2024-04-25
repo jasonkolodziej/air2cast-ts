@@ -4,7 +4,7 @@
 	import DeviceDetails from "$lib/device/DeviceDetails.svelte";
   import Configuration from '$lib/configuration/Configuration.svelte';
 	export let data: PageData;
-  console.log(data.data);
+  // console.log(data.data);
 </script>
 
 <Row padding>
