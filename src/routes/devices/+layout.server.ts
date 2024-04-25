@@ -13,7 +13,7 @@ export const load: LayoutServerLoad = async ({fetch,
     console.debug(`${route.id}.LayoutServerLoad ${isDataRequest} ${isSubRequest}`)
     const devices = locals.devices as Devices;
 	const sessionid = cookies.get('sessionid');
-    const devicesArray = new Array<DeviceRecord>(...(devices.DeviceRecords.values()))
+    // const devicesArray = new Array<DeviceRecord>(...(devices.DeviceRecords.values()))
     // const strippedDevices = devicesArray.map(
     //     (record) => {
     //         const clean = {templateConfiguration: new Object()} as DeviceRecord;

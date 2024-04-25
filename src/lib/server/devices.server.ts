@@ -1,10 +1,9 @@
 import { MDNSServiceDiscovery, type MDNSDiscoveryOptions, type MDNSService } from "tinkerhub-mdns";
-import { ToDeviceRecord, type DeviceRecord } from "./mdns.server";
+import { DeviceType, DeviceTypes, ToDeviceRecord, type DeviceRecord } from "./mdns.server";
 import { PersistentClient, ReceiverController } from "@foxxmd/chromecast-client";
 import type { PersistentClientOptions } from "@foxxmd/chromecast-client/dist/cjs/src/persistentClient";
 import { arpDevice, arpAll, type ArpData, ArpDataCachePOJO } from "./arp.server";
 import { mdnsServiceOpt } from "./chromecastHandler.server";
-import type { Unsubscriber } from "svelte/store";
 
 export const serializeNonPOJOs = (value: object | null) => {
     return structuredClone(value)
@@ -145,7 +144,11 @@ export class Devices extends Serialize<Devices> {
         //     )
         // });
         this.discover.onAvailable(
-            (service) => this.devices.set(...Device.mapEntry(service, this.arpData))
+            (service) => {
+                const dev = new Device(service, this.arpData)
+                // if(dev.DeviceRecord.Type !== undefined && dev.DeviceRecord.Type !== DeviceTypes.TV)
+                this.devices.set(...dev.asMapEntry)
+            }
         )
         this.discover.onUpdate(
             (service, newService) => this.devices.get(service.id)?.update(newService)
@@ -181,14 +184,5 @@ export class Devices extends Serialize<Devices> {
     public get DeviceEntries():Map<string, Device> {
         return this.devices
     }
-
-    
-    // public get ArpData(): Array<ArpData> {
-    //     return this.arpData.subscribe.caller()
-    // }
-
-    // public set ArpData(v: Subscriber<Array<ArpData>>){
-    //     this.arpData.subscribe(v)
-    // }
 
 }

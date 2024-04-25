@@ -169,7 +169,7 @@ export const IsTv = <T extends MDNSService>(device: T):boolean|undefined => {
 }
 
 export type DeviceType = keyof typeof DeviceTypes;
-enum DeviceTypes {
+export enum DeviceTypes {
     TV = 'tv',
     GROUP = 'group',
     SPEAKER = 'speaker'
