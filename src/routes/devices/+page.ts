@@ -13,7 +13,7 @@ export const load: PageLoad = async ({params,
     // const layoutData = await parent();
     // console.debug(`${route.id}.PageLoad.parent`, layoutData)
     // const promise = data.stream.promised as Promise<DeviceServices>
-    const quads = new Array()
+    // const quads = new Array()
     /// data.data.
     return {
         data: data.data,

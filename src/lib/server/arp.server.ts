@@ -1,6 +1,6 @@
 import {exec, spawn} from 'child_process';
 import { isIP } from 'net';
-import { MAC, parseMAC } from './mac/MAC';
+import { MAC } from './mac/MAC';
 import { readable, readonly, writable } from 'svelte/store';
 
 // const IPv6 = v6({exact: true});
@@ -39,10 +39,10 @@ const getGitBranchCommand = (folder: any, success: (arg0: any) => any, error: (a
     );
   }; 
 
-export type ArpData = {
+export interface ArpData {
     hostname: String;
     ip_address: String;
-    mac_address: String | MAC;
+    mac_address: MAC;
     interface_name: String;
     scope: String | String[];
     hw_type: String;
@@ -55,18 +55,51 @@ export const ArpDataCache = (data: string):Array<ArpData> => data.
         ).filter(
             item => 
                 isIP(item.at(1)?.replace("(","").replace(")","") as string) === 4 &&
-                parseMAC(item.at(2) as string)
+                new MAC(item.at(2) as string)
         ).map(editedLine => {
           // console.debug(editedLine)
             editedLine.length > 0 ? Object.assign({
                 hw_type: editedLine.pop()?.replace('[','').replace(']',''),
                 hostname: editedLine.reverse().pop(), // .at(0),
                 ip_address: editedLine.pop()?.replace('(','').replace(')',''), // .at(1)?.replace('(','').replace(')',''),
-                mac_address: parseMAC(editedLine.pop() as string), //.at(2),
+                mac_address: new MAC(editedLine.pop() as string), //.at(2),
                 interface_name: editedLine.pop(), //.at(3),
                 scope: editedLine,
             }) : null}
     ).filter(item => item != null);
+
+export const ArpDataCachePOJO = (data: string):Array<ArpData> => {
+
+  const dataArray = data.split('\n').map(
+        (line) => {
+          return line.split(' ').filter(piece => piece !== 'at' && piece !== 'on' && piece !== '');
+        }).filter(
+            (item) => 
+              isIP(item.at(1)?.replace("(","").replace(")","") as string) === 4 &&
+              new MAC(item.at(2)!)
+        ).map((editedLine) => {
+          // console.debug(editedLine);
+          // Object.assign({
+          return {
+            hw_type: editedLine.pop()?.replace('[','').replace(']',''),
+            hostname: editedLine.reverse().pop() as string, // .at(0),
+            ip_address: editedLine.pop()?.replace('(','').replace(')',''), // .at(1)?.replace('(','').replace(')',''),
+            mac_address: new MAC(editedLine.pop() as string), //.at(2),
+            interface_name: editedLine.pop(), //.at(3),
+            scope: editedLine,
+          } as ArpData;
+        }
+            //     hw_type: editedLine.pop()?.replace('[','').replace(']',''),
+            //     hostname: editedLine.reverse().pop(), // .at(0),
+            //     ip_address: editedLine.pop()?.replace('(','').replace(')',''), // .at(1)?.replace('(','').replace(')',''),
+            //     mac_address: MAC.parse(editedLine.pop() as string), //.at(2),
+            //     interface_name: editedLine.pop(), //.at(3),
+            //     scope: editedLine,
+            // }) : null}
+    );
+    // console.debug(dataArray);
+    return dataArray;
+  }
 
 
 export const ArpDataSig = (data: string):ArpData => data.split('\n').map(
@@ -75,14 +108,14 @@ export const ArpDataSig = (data: string):ArpData => data.split('\n').map(
     ).filter(
         item => 
             isIP(item.at(1)?.replace("(","").replace(")","") as string) === 4 &&
-            parseMAC(item.at(2) as string)
+            new MAC(item.at(2)!)
     ).map(editedLine => {
       // console.debug(editedLine)
         return {
             hw_type: editedLine.pop()?.replace('[','').replace(']',''),
             hostname: editedLine.reverse().pop(), // .at(0),
             ip_address: editedLine.pop()?.replace('(','').replace(')',''), // .at(1)?.replace('(','').replace(')',''),
-            mac_address: parseMAC(editedLine.pop() as string), //.at(2),
+            mac_address: new MAC(editedLine.pop()!), //.at(2),
             interface_name: editedLine.pop(), //.at(3),
             scope: editedLine,
         } as ArpData}
@@ -120,7 +153,7 @@ export const arpAll = () => {
   const arp = readable(p)
   const arpData = writable(new Array<ArpData>());
   arp.subscribe((p) => p.stdout?.on('data', (stream) => {
-    arpData.set(ArpDataCache(stream))
+    arpData.set(ArpDataCachePOJO(stream))
   }))
   return readonly(arpData);
 }

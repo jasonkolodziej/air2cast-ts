@@ -2,15 +2,34 @@ import { MDNSServiceDiscovery, type MDNSDiscoveryOptions, type MDNSService } fro
 import { ToDeviceRecord, type DeviceRecord } from "./mdns.server";
 import { PersistentClient, ReceiverController } from "@foxxmd/chromecast-client";
 import type { PersistentClientOptions } from "@foxxmd/chromecast-client/dist/cjs/src/persistentClient";
-import { arpDevice, arpAll, type ArpData, ArpDataCache, ArpDataSig } from "./arp.server";
+import { arpDevice, arpAll, type ArpData, ArpDataCachePOJO } from "./arp.server";
 import { mdnsServiceOpt } from "./chromecastHandler.server";
-import { isIP } from 'net';
-import type { Readable } from "svelte/store";
-import { parseMAC } from "./mac/MAC";
+import type { Unsubscriber } from "svelte/store";
 
+export const serializeNonPOJOs = (value: object | null) => {
+    return structuredClone(value)
+};
+interface Serializable<T> {
+    /**
+     * serialize(value: T | null): object    */
+    serialize?(value: T | null): T | null;
+}
 
+abstract class Serialize<T extends object> implements Serializable<object> {
+    // abstract _t(): T | null;
+    // constructor(val: T | null) {
+        
+    // }
+    serialize(value: T | null): T | null {
+        return structuredClone(value);
+    }
+    
+    static serialize<T>(value: T | null): T | null {
+        return structuredClone(value);
+    }
+}
 
-export class Device {
+export class Device extends Serialize<Device> {
     /**
      *
      */
@@ -20,10 +39,10 @@ export class Device {
     public id?: string;
     private arpData:Array<ArpData>;
     protected readonly recordData: Map<string, string|boolean>;
-    constructor(service:MDNSService, arpData?: Readable<Array<ArpData>>) {
-        // super();
+    constructor(service:MDNSService, arpData?: Array<ArpData>) {
+        super();
         this.id = service.id;
-        arpData?.subscribe(sub => this.arpData = sub);
+        this.arpData = arpData ?? [];
         this.mdnsRecord = ToDeviceRecord(service);
         this.recordData = this.mdnsRecord.Record//.entries();
         const clientOptions = {host: this.mdnsRecord.IPAddress, port: this.mdnsRecord.Port} as PersistentClientOptions;
@@ -33,18 +52,10 @@ export class Device {
                 this.receiver = ReceiverController.createReceiver(this.client);
             }
         )
-        // this.resolveMac();
+        this.resolveMac();
+        console.debug(this);
         // this.receiver = ReceiverController.createReceiver(this.client);
     }
-
-    
-    // private _arpData(value : ArpData[]): void {
-    //     this.arpData = value;
-    // }
-    // private set arpData(value : ArpData[]) {
-    //     this.arpData = value;
-    // }
-    
     /**
      * update
      */
@@ -72,44 +83,21 @@ export class Device {
     //     delete this.mdnsRecord;
     // }
 
-    protected resolveMac() {        
-        let mac = this.arpData.filter(dataPkt => this.mdnsRecord!.IPAddress === dataPkt.ip_address);
-        if (mac.length > 0) {
-            this.mdnsRecord = {
-                ...this.mdnsRecord!,
-                MacAddress: (mac.pop()!.mac_address as string),
-            };
-            return;
-        } else { // * Did we find it?
+    protected resolveMac() {
+        console.debug('device.resolveMac var: arpData', this.arpData)        
+        let mac = this.arpData?.filter(dataPkt => this.mdnsRecord!.IPAddress === dataPkt.ip_address).pop();
+        if (mac === undefined) { // * Did we find it?
             console.warn("still need Mac")
             // TODO: Might not handle all use cases
             arpDevice(this.mdnsRecord!.IPAddress!)!.stdout!.once('data', (stream: string) => {
-                // const arp = stream.split('\n').map(
-                //     line => line.split(' ')
-                //         .filter(piece => piece !== 'at' && piece !== 'on' && piece !== '')
-                //     ).filter(
-                //         item => 
-                //             isIP(item.at(1)?.replace("(","").replace(")","") as string) === 4 &&
-                //             parseMAC(item.at(2) as string)
-                //     ).map(editedLine => {
-                //       // console.debug(editedLine)
-                //         return {
-                //             hw_type: editedLine.pop()?.replace('[','').replace(']',''),
-                //             hostname: editedLine.reverse().pop(), // .at(0),
-                //             ip_address: editedLine.pop()?.replace('(','').replace(')',''), // .at(1)?.replace('(','').replace(')',''),
-                //             mac_address: parseMAC(editedLine.pop() as string), //.at(2),
-                //             interface_name: editedLine.pop(), //.at(3),
-                //             scope: editedLine,
-                //         } as ArpData}
-                //     );
-                const arp = ArpDataSig(stream)
-                console.debug('Devices.mac', arp)
-                this.mdnsRecord = {
-                    ...this.mdnsRecord!,
-                    MacAddress: (arp?.mac_address as string),
-                };
+                mac = ArpDataCachePOJO(stream).pop();
             })
         }
+        // console.debug('device.resolveMac', mac)
+        this.mdnsRecord = {
+            ...this.mdnsRecord!,
+            MacAddress: mac?.mac_address,
+        };
     }
 
     
@@ -117,7 +105,7 @@ export class Device {
         return [this.id!.toString(), this]
     }
 
-    public static mapEntry(service: MDNSService, arpData?:Readable<Array<ArpData>>): [string, Device] {
+    public static mapEntry(service: MDNSService, arpData?:Array<ArpData>): [string, Device] {
         return [service.id, new Device(service, arpData)]
     }
 
@@ -131,16 +119,30 @@ export class Device {
 //     return structuredClone(value)
 // };
 
-export class Devices {
+export class Devices extends Serialize<Devices> {
     /**
      *
      */
     protected readonly discover:MDNSServiceDiscovery;
     protected readonly devices:Map<string, Device> = new Map();
-    public arpData:Readable<Array<ArpData>>;
+    public arpData:Array<ArpData>;
     constructor(discovery?: MDNSServiceDiscovery, options?: MDNSDiscoveryOptions) {
-        this.arpData = arpAll();
+        super();
+        const allArp = arpAll();
+        allArp.subscribe((sub) => {this.arpData = sub});
         this.discover = discovery ?? new MDNSServiceDiscovery(options ?? mdnsServiceOpt);
+        // const promisedData = new Promise<Array<ArpData>>((resolve, reject) => {
+        //     allArp.subscribe((sub) => {
+        //         // this.arpData = sub;
+        //         resolve(sub)
+        //     });
+        // }).then((sub) => {
+        //     // this.unsubscribe = unsub;
+        //     this.arpData = sub;
+        //     this.discover.onAvailable(
+        //         (service) => this.devices.set(...Device.mapEntry(service, this.arpData))
+        //     )
+        // });
         this.discover.onAvailable(
             (service) => this.devices.set(...Device.mapEntry(service, this.arpData))
         )
@@ -161,6 +163,14 @@ export class Devices {
             map.set(iterator[0], iterator[1].DeviceRecord)
         }
         return map;
+    }
+
+    public DeviceRecordArray(stripOpts?: DeviceRecord):Array<DeviceRecord> {
+        return Array.from(this.Devices).map((device) => {return {...(device.DeviceRecord), ...stripOpts} as DeviceRecord })
+    }
+
+    public DeviceIdArray():Array<string> {
+        return Array.from(this.DeviceEntries).map(([id, _]) => id);
     }
 
     public get Devices():IterableIterator<Device> {

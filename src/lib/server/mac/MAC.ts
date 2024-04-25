@@ -1,3 +1,4 @@
+import * as devalue from 'devalue';
 interface ToStringOptions {
     /** Pad with zeros when an octet would print as 1 char */
     zeroPad?: boolean;
@@ -13,11 +14,18 @@ interface ToStringOptions {
    * arithmetic in .toString(), but it would just end up in parseLong()
    * instead.)
    */
-  export class MAC {
-    private readonly _value: number;
+
+  export interface Mac {
+    readonly _value: number | string;
+  }
+  export class MAC implements Mac {
+    readonly _value;
   
-    constructor(value: number) {
-      this._value = value;
+    constructor(value: number | string) {
+      if (typeof(value) === 'string'){
+        this._value = parseString(value)._value;
+      }
+      this._value = value as number;
     }
   
     get value(): number {
@@ -74,6 +82,29 @@ interface ToStringOptions {
   
       return 0;
     }
+
+    public stringified() {
+      const str =  devalue.stringify(this, {
+        MAC: (value) => value instanceof MAC && [this._value]
+      });
+      console.debug(`MAC.stringified()=>${str}`)
+      return str;
+    }
+      
+     // console.log(stringified); // [["Vector",1],[2,3],30,40]
+      
+    public static parse(stringified: string) {
+    const parsed = devalue.parse(stringified, {
+        MAC: (value) => (value instanceof String || value instanceof Number) &&  parseMACInstance(value)
+      }) as MAC;
+    const uneval = devalue.uneval(parsed, (value) => {
+        if (value instanceof MAC) {
+          return `new MAC(${value})`;
+        }
+    });
+      console.debug(`MAC.parse()=>${parsed}`)
+      return uneval({});
+    } 
   }
 
 const HEX_RE = /^[a-f0-9]$/;
@@ -158,7 +189,7 @@ export function parseLong(input: number): MAC {
   return new MAC(input);
 }
 
-export function parseMAC(input: string | number): MAC {
+function parseMAC(input: string | number ): MAC {
   switch (typeof input) {
     case 'string':
       return parseString(input);
@@ -167,4 +198,14 @@ export function parseMAC(input: string | number): MAC {
     default:
       throw new Error('Expected string or integer, but got ' + typeof input);
   }
+}
+
+function parseMACInstance(input: String | Number ): MAC {
+  if (input instanceof String) {
+    return parseString(input as string);
+  }
+  if (input instanceof Number) {
+    return parseLong(input as number);
+  }
+  throw new Error('Expected string or integer, but got ' + typeof input);
 }
