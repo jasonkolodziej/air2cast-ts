@@ -52,7 +52,6 @@ export class Device extends Serialize<Device> {
                 this.resolveMac();
             }
         )
-        
         // console.debug(this);
         // this.receiver = ReceiverController.createReceiver(this.client);
     }
@@ -100,7 +99,6 @@ export class Device extends Serialize<Device> {
         };
     }
 
-    
     public get asMapEntry() : [string, Device] {
         return [this.id!.toString(), this]
     }
@@ -109,10 +107,10 @@ export class Device extends Serialize<Device> {
         return [service.id, new Device(service, arpData)]
     }
 
-    
     public get DeviceRecord() : DeviceRecord {
         return this.mdnsRecord 
     }
+    
 }
 
 // const serializeNonPOJOs = (value: object | null) => {
