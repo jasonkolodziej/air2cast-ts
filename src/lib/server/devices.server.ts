@@ -50,10 +50,11 @@ export class Device extends Serialize<Device> {
         this.client.connect().then(
             () => {
                 this.receiver = ReceiverController.createReceiver(this.client);
+                this.resolveMac();
             }
         )
-        this.resolveMac();
-        console.debug(this);
+        
+        // console.debug(this);
         // this.receiver = ReceiverController.createReceiver(this.client);
     }
     /**
@@ -84,7 +85,7 @@ export class Device extends Serialize<Device> {
     // }
 
     protected resolveMac() {
-        console.debug('device.resolveMac var: arpData', this.arpData)        
+        // console.debug('device.resolveMac var: arpData', this.arpData)        
         let mac = this.arpData?.filter(dataPkt => this.mdnsRecord!.IPAddress === dataPkt.ip_address).pop();
         if (mac === undefined) { // * Did we find it?
             console.warn("still need Mac")
