@@ -38,7 +38,8 @@ const searchForFile = (dir: string, filename: string): fs.PathOrFileDescriptor |
 }
 interface Serializable<T> {
     /**
-     * serialize(value: T | null): object    */
+     * serialize(value: T | null): object
+    */
     serialize?(value: T | null): T | null;
 }
 

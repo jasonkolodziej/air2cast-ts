@@ -1,7 +1,8 @@
 <script lang="ts">
     import { Button, ExpandableTile, Tag,
     DataTable } from 'carbon-components-svelte';
-      import { CatalogPublish, Checkmark, Events, PlayFilled, Settings } from 'carbon-icons-svelte';
+    import { CatalogPublish, Checkmark, 
+    Events, PlayFilled, Settings } from 'carbon-icons-svelte';
 	import type { ReceiverStatus } from '@foxxmd/chromecast-client';
 	import type { DeviceRecord } from '$lib/server/mdns.server';
     interface device {

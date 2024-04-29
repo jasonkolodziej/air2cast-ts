@@ -17,7 +17,8 @@
 		"recommendations": [
 			"svelte.svelte-vscode",
 			"ms-vscode.vscode-typescript-next",
-			"esbenp.prettier-vscode"
+			"esbenp.prettier-vscode",
+			"aaron-bond.better-comments"
 		]
 	}
 }
