@@ -2,12 +2,14 @@ import { MDNSServiceDiscovery, type MDNSDiscoveryOptions, type MDNSService } fro
 import { ToDeviceRecord, type DeviceRecord } from "./mdns.server";
 import { PersistentClient, ReceiverController, Result, type ReceiverStatus } from "@foxxmd/chromecast-client";
 import type { PersistentClientOptions } from "@foxxmd/chromecast-client/dist/cjs/src/persistentClient";
-import { arpDevice, arpAll, type ArpData, ArpDataCachePOJO } from "./arp.server";
+import { arpDevice, type ArpData, ArpDataCachePOJO } from "./arp.server";
+import { type Subscribable } from "atvik";
 import { mdnsServiceOpt } from "./chromecastHandler.server";
-import {spawn, ChildProcess,
-    type ChildProcessWithoutNullStreams, type SendHandle, type MessageOptions} from 'child_process';
+import {spawn, 
+    type ChildProcessWithoutNullStreams} from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Arp, type ArpDataEntry, type EventCall } from "./arp/arp";
 
 export const serializeNonPOJOs = (value: object | null) => {
     return structuredClone(value)
@@ -68,10 +70,6 @@ export interface Pipes {
     readonly Transcoder: ChildProcessWithoutNullStreams;
 }
 
-// interface Status {
-//     async ():Promise<ReceiverStatus>;
-// }
-
 export class Device extends Serialize<Device> implements CastController, Pipes {
     /**
      *
@@ -81,24 +79,28 @@ export class Device extends Serialize<Device> implements CastController, Pipes {
     public receiver?: ReceiverController.Receiver;
     public id?: string;
     private arpData:Array<ArpData>;
+    private arpEvents:Subscribable<Arp, [EventCall, [String, ArpDataEntry]]>;
     protected readonly recordData: Map<string, string|boolean>;
     protected shairportSync?: ChildProcessWithoutNullStreams;
     protected transcoder?: ChildProcessWithoutNullStreams;
 
-    constructor(service:MDNSService, arpData?: Array<ArpData>) {
+    constructor(service:MDNSService, arpData?: Array<ArpData>, arpEvents?: Arp) {
         super();
         this.id = service.id;
         this.arpData = arpData ?? [];
         this.mdnsRecord = ToDeviceRecord(service);
         this.recordData = this.mdnsRecord.Record//.entries();
+        this.arpEvents = arpEvents!.filterBy(this.mdnsRecord.IPAddress!);
         const clientOptions = {host: this.mdnsRecord.IPAddress, port: this.mdnsRecord.Port} as PersistentClientOptions;
         this.client = new PersistentClient(clientOptions);
         this.client.connect().then(
             () => {
                 this.receiver = ReceiverController.createReceiver({client: this.client});
-                this.resolveMac();
             }
-        )
+        );
+        // temp:
+        this.resolveMac().then((val) => this.mdnsRecord.MacAddress = val);
+        
         // console.debug(this);
         // this.receiver = ReceiverController.createReceiver(this.client);
     }
@@ -128,22 +130,46 @@ export class Device extends Serialize<Device> implements CastController, Pipes {
     // public destroy() {
     //     delete this.mdnsRecord;
     // }
-
-    protected resolveMac() {
-        // console.debug('device.resolveMac var: arpData', this.arpData)        
-        let mac = this.arpData?.filter(dataPkt => this.mdnsRecord!.IPAddress === dataPkt.ip_address).pop();
-        if (mac === undefined) { // * Did we find it?
-            console.warn("still need Mac")
-            // TODO: Might not handle all use cases
-            arpDevice(this.mdnsRecord!.IPAddress!)!.stdout!.once('data', (stream: string) => {
-                mac = ArpDataCachePOJO(stream).pop();
-            })
-        }
-        // console.debug('device.resolveMac', mac)
+    /// Deprecated
+    // protected resolveMac() {
+    //     // console.debug('device.resolveMac var: arpData', this.arpData)        
+    //     let mac = this.arpData?.filter(dataPkt => this.mdnsRecord!.IPAddress === dataPkt.ip_address).pop();
+    //     if (mac === undefined) { // * Did we find it?
+    //         console.warn("still need Mac")
+    //         // TODO: Might not handle all use cases
+    //         arpDevice(this.mdnsRecord!.IPAddress!)!.stdout!.once('data', (stream: string) => {
+    //             mac = ArpDataCachePOJO(stream).pop();
+    //         })
+    //     }
+    //     // console.debug('device.resolveMac', mac)
+    //     this.mdnsRecord = {
+    //         ...this.mdnsRecord!,
+    //         MacAddress: mac?.mac_address,
+    //     };
+    // }
+    protected async resolveMac() {
+        // console.debug('device.resolveMac var: arpData', this.arpData)
+        // const arp = await this.arpEvents.once();
+        // console.debug('device.resolveMac', arp);
+        // const entry = arp[1][1];
+        // if(entry.mac_address !== undefined) {
+        //     this.mdnsRecord = {
+        //         ...this.mdnsRecord!,
+        //         MacAddress: entry.mac_address,
+        //     };
+        // }
+        const mac = await this.arpEvents.once().then(
+            ([calling, [id, val]]) => {
+                console.debug('device.resolveMac', val);
+                return val;
+            }).then((entry)=> {
+                return entry.mac_address;
+            });
         this.mdnsRecord = {
-            ...this.mdnsRecord!,
-            MacAddress: mac?.mac_address,
-        };
+                ...this.mdnsRecord!,
+                MacAddress: mac,
+            };
+        return mac;
     }
 
     public get asMapEntry() : [string, Device] {
@@ -283,8 +309,9 @@ export class Devices extends Serialize<Devices> {
     public arpData!: Array<ArpData>;
     constructor(discovery?: MDNSServiceDiscovery, options?: MDNSDiscoveryOptions) {
         super();
-        const allArp = arpAll();
-        allArp.subscribe((sub) => {this.arpData = sub});
+        // const allArp = arpAll();
+        // allArp.subscribe((sub) => {this.arpData = sub});
+        const arp = new Arp();
         this.discover = discovery ?? new MDNSServiceDiscovery(options ?? mdnsServiceOpt);
         // const promisedData = new Promise<Array<ArpData>>((resolve, reject) => {
         //     allArp.subscribe((sub) => {
@@ -300,7 +327,8 @@ export class Devices extends Serialize<Devices> {
         // });
         this.discover.onAvailable(
             (service) => {
-                const dev = new Device(service, this.arpData)
+                // const dev = new Device(service, this.arpData)
+                const dev = new Device(service, undefined, arp)
                 // if(dev.DeviceRecord.Type !== undefined && dev.DeviceRecord.Type !== DeviceTypes.TV)
                 this.devices.set(...dev.asMapEntry)
             }

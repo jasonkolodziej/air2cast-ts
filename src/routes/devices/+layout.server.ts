@@ -1,6 +1,6 @@
 import type { LayoutServerLoad } from "../$types";
-import { ToDeviceRecord, type DeviceRecord } from "$lib/server/mdns.server";
-import { serializeNonPOJOs, type CastController, type Device, type Devices } from "$lib/server/devices.server";
+import { type DeviceRecord } from "$lib/server/mdns.server";
+import { type Devices } from "$lib/server/devices.server";
 
 export const load: LayoutServerLoad = async ({fetch,
     cookies,

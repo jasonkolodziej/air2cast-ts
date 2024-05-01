@@ -1,6 +1,6 @@
 // ? https://kit.svelte.dev/docs/hooks#server-hooks
 import { arpAll } from '$lib/server/arp.server';
-import { discoverChromeCast, StartStopNotify, DeviceRecord } from '$lib/server/mdns.server';
+import { discoverChromeCast, StartStopNotify, type DeviceRecord } from '$lib/server/mdns.server';
 import { Devices } from '$lib/server/devices.server';
 import { json, type Handle, type HandleFetch } from '@sveltejs/kit';
 import { readonly } from 'svelte/store';
@@ -70,16 +70,16 @@ export const handleFetch: HandleFetch = async ({ request, fetch }) => {
 	return fetch(request);
 };
 
-const handleDiscoverDevices: Handle = async ({ event, resolve }) => {
-    console.debug("hooks.server.handleDiscoverDevices")
-    const cast = discoverChromeCast;
-    const arpData = arpAll();
-    // console.debug(arpData)
-    const devices = StartStopNotify(cast.onAvailable, cast.onUnavailable, cast.onUpdate, arpData)
-	const readonlyDevices = readonly(devices)
-	return json(readonlyDevices)
-    // return new Promise(json(readonlyDevices))
-};
+// const handleDiscoverDevices: Handle = async ({ event, resolve }) => {
+//     console.debug("hooks.server.handleDiscoverDevices")
+//     const cast = discoverChromeCast;
+//     const arpData = arpAll();
+//     // console.debug(arpData)
+//     const devices = StartStopNotify(cast.onAvailable, cast.onUnavailable, cast.onUpdate, arpData)
+// 	const readonlyDevices = readonly(devices)
+// 	return json(readonlyDevices)
+//     // return new Promise(json(readonlyDevices))
+// };
 
 // const handleArpAll: Handle = async ({ event, resolve }) => {
 //     console.debug("hooks.server.handleArpAll")
