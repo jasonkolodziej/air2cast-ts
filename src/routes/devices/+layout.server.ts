@@ -2,6 +2,12 @@ import type { LayoutServerLoad } from "../$types";
 import { type DeviceRecord } from "$lib/server/mdns.server";
 import { type Devices } from "$lib/server/devices.server";
 
+
+/**
+ * 
+ * @param params = {device: ?} // * represents a dynamic value like slug 
+ * @returns partial LayoutLoad data apart of the resolve call via hooks.server
+ */
 export const load: LayoutServerLoad = async ({fetch,
     cookies,
     params,
@@ -31,17 +37,31 @@ export const load: LayoutServerLoad = async ({fetch,
     //             } as DeviceRecord;
     //     });
     // const strippedDevices = devices?.DeviceRecordArray(({templateConfiguration: undefined} as DeviceRecord))
-    const mainDev = Array.from(devices?.Devices)//.filter((device) => (device.DeviceRecord.Type as string) !== 'tv');
-    const strippedDevices = mainDev?.map(device => {
-        return {
-            deviceData: structuredClone({
+    const mainDev = Array.from(devices?.Devices);
+    const deviceData = mainDev.filter(
+        (device) => {
+            return device.DeviceRecord.Id === params.device || true
+        }).map(
+        (device) => {
+            console.debug(device)
+            return {            
+                deviceData: structuredClone({
                 ...device.DeviceRecord,
                 ...({templateConfiguration: undefined} as DeviceRecord),
             }),
-            deviceStatus: device.Status(),
-            // receiver: structuredClone(device.CastController.receiver)
         }
-    })
+        }
+    )
+    // const strippedDevices = mainDev?.map(device => {
+    //     return {
+    //         deviceData: structuredClone({
+    //             ...device.DeviceRecord,
+    //             ...({templateConfiguration: undefined} as DeviceRecord),
+    //         }),
+    //         deviceStatus: device.Status(),
+    //         // receiver: structuredClone(device.CastController.receiver)
+    //     }
+    // })
     // const controllers = mainDev.map((device) => device.CastController);
     // const firstController = controllers.at(0);
     // const fristDevice = mainDev.at(0);
@@ -52,11 +72,11 @@ export const load: LayoutServerLoad = async ({fetch,
         // console.debug(fristDevice)
         // console.debug(strippedDevices)
         return {
-            data: strippedDevices
+            data: deviceData
             // data: devices.services.map(ToDeviceRecord)
         }
     }
     return {
-        data: []
+        data: deviceData
     };
 };

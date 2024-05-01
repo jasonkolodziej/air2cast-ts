@@ -186,13 +186,13 @@ get onEvents() {
           console.debug('parse.Update', key)
         }
         // * update
-        this.event.emit(EventCall.Update, [key, hardened])
+        this.event.parallelEmit(EventCall.Update, [key, hardened])
       } else {
         // * new
         if(this._type == ArpCall.NAMED) {
           console.debug('parse.Avail', key)
         }
-        this.event.emit(EventCall.Available, [key, hardened])
+        this.event.parallelEmit(EventCall.Available, [key, hardened])
       }
       this.serviceMap.set(key, hardened);
     }

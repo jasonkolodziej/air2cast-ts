@@ -6,7 +6,7 @@
 console.debug('layout.data', data)
 </script>
 
-{#if !data.data.slug}
+{#if !data.data.device}
   <Row padding>
     <Column>
       <h1>Devices</h1>

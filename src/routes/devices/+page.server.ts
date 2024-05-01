@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({params,
     // const devices = await layOutdata.data;
     // console.log(layOutdata)
     return {
-        slug: route.id,
+        device: route.id,
         data: data
     }
 };
