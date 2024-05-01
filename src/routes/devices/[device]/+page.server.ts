@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({params,
     isDataRequest,
     parent, // ? LayoutData from layout.ts
     route}) => {    
-    console.debug(`${route.id}=@${params.slug}.PageServerLoad ${isDataRequest}`)
+    console.debug(`${route.id}=@${params.device}.PageServerLoad ${isDataRequest}`)
     const layOutdata = await parent()
     const device = layOutdata.data.filter((record) => record.deviceData.Id === params.device).pop()
     return {

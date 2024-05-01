@@ -46,10 +46,11 @@ export const load: LayoutServerLoad = async ({fetch,
             console.debug(device)
             return {            
                 deviceData: structuredClone({
-                ...device.DeviceRecord,
-                ...({templateConfiguration: undefined} as DeviceRecord),
-            }),
-        }
+                    ...device.DeviceRecord,
+                    ...({templateConfiguration: undefined} as DeviceRecord),
+                }),
+            deviceStatus: device.Status(),
+            }
         }
     )
     // const strippedDevices = mainDev?.map(device => {
