@@ -55,3 +55,36 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 	 */
 	public abstract destroy(): Promise<void>;
 }
+
+
+export abstract class AbstractDestroyable extends AbstractServicePublisher {
+    /**
+	 * Get if this discovery has been destroyed.
+	 */
+	private _destroyed: boolean;
+	/**
+	 * Event used to emit when this discovery is destroyed.
+	 */
+	private readonly destroyEvent: Event<this>;
+
+    constructor(type: string){
+        super('destroyable' + type)
+        this._destroyed = false;
+		this.destroyEvent = new Event(this);
+    }
+
+    public destroy(): Promise<void> {
+		if(this.destroyed) return Promise.resolve();
+
+		this._destroyed = true;
+		this.destroyEvent.emit();
+
+		return Promise.resolve();
+	}
+
+    protected abstract beforeDestroy(): Promise<void>;
+
+    get destroyed() {
+		return this._destroyed;
+	}
+}
