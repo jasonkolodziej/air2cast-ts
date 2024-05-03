@@ -48,6 +48,7 @@
 		"@foxxmd/chromecast-client": "^1.0.4",
 		"atvik": "^3.2.1",
 		"sprache": "^1.2.2",
-		"tinkerhub-mdns": "^0.5.1"
+		"tinkerhub-mdns": "^0.5.1",
+		"tinkerhub-discovery": "^0.6.0"
 	}
 }
