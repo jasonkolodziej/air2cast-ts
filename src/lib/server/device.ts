@@ -6,10 +6,26 @@ import { MAC, type Mac } from "./mac/MAC";
 import { PersistentClient, ReceiverController } from "@foxxmd/chromecast-client";
 import type { PersistentClientOptions } from "@foxxmd/chromecast-client/dist/cjs/src/persistentClient";
 
+
+interface RecordDetails {
+    Id: String; // m.data.get('id') as string,
+    ManufacturerDetails: String;// m.data.get('md') as string,
+    FriendlyName: String; //m.data.get('fn') as string,
+}
+
+export type DeviceType = keyof typeof DeviceTypes;
+export enum DeviceTypes {
+    TV = 'tv',
+    GROUP = 'group',
+    SPEAKER = 'speaker',
+    UNKNOWN = ''
+}
 interface DeviceServicePub extends Service {
     Record: MDNSService;
     MacAddress?: Mac;
     Client: PersistentClient;
+    DeviceId: String;
+    Type: DeviceTypes;
     readonly onDevice: Subscribable<this, [DeviceServicePub]>;
     readonly onClient: Subscribable<this, [PersistentClient]>;
 }
@@ -23,6 +39,7 @@ class Device extends AbstractDestroyable implements DeviceServicePub {
     MacAddress?: Mac;
     Client: PersistentClient;
     Receiver?: ReceiverController.Receiver;
+    readonly RecordDetails: RecordDetails;
     protected readonly deviceEvent: Event<this, [DeviceServicePub]>;
     protected readonly clientEvent: Event<this, [PersistentClient]>;
     protected readonly receiverEvent: AsyncEvent<this, [ReceiverController.Receiver]>;
@@ -31,15 +48,15 @@ class Device extends AbstractDestroyable implements DeviceServicePub {
 
     constructor(service: MDNSService) {
         super('device:service')
-        this.Record = service;
         this.deviceEvent = new Event(this);
         this.clientEvent = new Event(this);
         this.receiverEvent = new AsyncEvent(this);
-        this.deviceEvent.emit(this);
+        this.Record = service;
         // this.obtainMac().then(
         //     val => this.withUpdate(val)
 
         // )
+        this.RecordDetails = this.handleRecordDetails();
         const clientOptions = this.Address as PersistentClientOptions;
         this.Client = new PersistentClient(clientOptions);
         this.Client.connect().then(
@@ -48,7 +65,35 @@ class Device extends AbstractDestroyable implements DeviceServicePub {
                 this.receiverEvent.emit(this.Receiver);
             }
         );
+        this.deviceEvent.emit(this);
         this.obtainMacAsync();
+    }
+
+    private handleRecordDetails() {
+        return {
+            Id: this.Record.data.get('id') as String,
+            ManufacturerDetails: this.Record.data.get('md') as String,
+            FriendlyName: this.Record.data.get('fn') as String,
+        } as RecordDetails;
+    }
+    get Type() {
+        return this.deviceType
+    }
+    private get deviceType(): DeviceTypes {
+        if (this.Record.data.get('md')?.toString().toLowerCase().includes(DeviceTypes.GROUP)) {
+            return DeviceTypes.GROUP;
+        }
+        if (this.Record.data.get('fn')?.toString().toLowerCase().includes(DeviceTypes.TV)) {
+            return DeviceTypes.TV;
+        }
+        if (this.Record.data.get('fn')?.toString().toLowerCase().includes(DeviceTypes.SPEAKER)) {
+            return DeviceTypes.SPEAKER;
+        }
+        return DeviceTypes.UNKNOWN
+    }
+
+    get DeviceId() {
+        return this.RecordDetails.Id;
     }
 
     private get Address() {
