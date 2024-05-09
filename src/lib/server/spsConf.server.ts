@@ -13,6 +13,7 @@ import path from "path";
 // import { convert2Json } from "../libconfig/commands";
 // import { toLibConfigFile } from "../libconfig/toLibConfigFile";
 
+
 export const searchForFile = (dir: string, filename: string): PathOrFileDescriptor | undefined => {
     // read the contents of the directory
     const files = readdirSync(dir);
@@ -37,18 +38,6 @@ export const searchForFile = (dir: string, filename: string): PathOrFileDescript
     } // fs.readFileSync(filePath)
 }
 
-
-// export const ParseFile = parseFile;
-// // export const jsonConfiguration = configJson; // JSON.parse(configJson);
-// export function withComments(input:string):string {
-//     return ParseCommentedSetting.parse(input) as unknown as string;
-// }
-// export const Parse = (arg0: string) => { 
-//     let o = Group.parse(`{${stripComments(arg0)}}`) as object;
-//     o = Object.assign(o, {[Object.keys(o).at(0) as string]:withComments(arg0)})
-//     // console.log()
-//     return o
-// };
 /**
  * ## DeviceConfig
     Represents the interface of fields that need to be modified for each device that will proxy `shairport-sync`.
@@ -72,27 +61,27 @@ export interface Comment {
     _isCommented?: boolean;
     _description: Array<String>;
 }
-const CommentWriter = (c: Comment, defined?: boolean) => {
+const CommentWriter = (c: Comment, isKV: boolean = false) => {
     switch (c.$style) {
        case "CppStyle": //? '//'
-        if (c._description.length > 1) {
-            return '// ' + c._description.join('\n');
-        } else {
-            return '// ' + c._description.join('');
-        }
-        //return c._description.map((line) => '// '+line).join('\n');
+        if(isKV === true && c._isCommented) {
+            return '// '
+        } else if (isKV) return '';
+        return c._description.map((line) => '// '+line).join('\n');
        case "CStyle": //? '/* */'
+        if(isKV === true && c._isCommented) {
+            return '/* '
+        } else if (isKV) return '';
         if (c._description.length > 1) {
             return '/*\n ' + c._description.join('\n') + ' */';
         } else {
             return '/* ' + c._description.join('') + ' */';
         }
        case "ScriptStyle": //? '#'
-        if (c._description.length > 1) {
-                return '# ' + c._description.join('\n');
-            } else {
-                return '# ' + c._description.join('');
-        }
+        if(isKV === true && c._isCommented) {
+            return '# '
+        } else if (isKV) return '';
+        return c._description.map((line) => '# '+line).join('\n');
     }
 }
 /**
@@ -117,7 +106,7 @@ const SectionWriter = (name: String, s: object | Section) => {
         children = children.set(key, (value as KV))
     }
     return CommentWriter((s as Section)._comments) + `${name} = {\n` + Array.from(children.entries()).map(([name, kv]) => {
-        return name + ' = ' + KvWriter(kv);
+        return CommentWriter(kv._description, true) + name + ' = ' + KvWriter(kv);
     }).join('\n') + '\n}\n';
 }
 /**
@@ -257,7 +246,7 @@ export class SPS extends BasicServiceDiscovery<Sps> {
     }
 
     private static preloadConfig(path?: string) {
-        return JSON.parse(readFileSync(PWD+"/spsConf.json", 'utf-8'))
+        return JSON.parse(readFileSync(__dirname+"/spsConfig.json", 'utf-8'))
     }
 
     protected parsedConfiguration(config?: object): ParsedConfiguration {
