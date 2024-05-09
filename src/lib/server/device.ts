@@ -5,6 +5,7 @@ import { Arp, ArpCall } from "./arp/arp";
 import { MAC, type Mac } from "./mac/MAC";
 import { PersistentClient, ReceiverController } from "@foxxmd/chromecast-client";
 import type { PersistentClientOptions } from "@foxxmd/chromecast-client/dist/cjs/src/persistentClient";
+import type { Service } from "tinkerhub-discovery";
 
 
 interface RecordDetails {
