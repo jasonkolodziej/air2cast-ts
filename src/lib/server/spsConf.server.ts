@@ -5,26 +5,137 @@ import { ChildProcess, spawn } from "child_process";
 import { Readable } from "stream";
 import { platform } from "os";
 import { BasicServiceDiscovery, type Service } from "tinkerhub-discovery";
-import { type PathOrFileDescriptor, readFileSync } from "fs";
+import { type PathOrFileDescriptor, readdirSync, readFileSync, statSync } from "fs";
+import path from "path";
+// import {parseFile, stripComments} from "../libconfig";
+// import { ParseCommentedSetting } from "../libconfig/parts/Comments";
+// import { Group } from "../libconfig/parts/AssignmentStatement";
+// import { convert2Json } from "../libconfig/commands";
+// import { toLibConfigFile } from "../libconfig/toLibConfigFile";
 
+export const searchForFile = (dir: string, filename: string): PathOrFileDescriptor | undefined => {
+    // read the contents of the directory
+    const files = readdirSync(dir);
+    // search through the files
+    for (const file of files) {
+        // build the full path of the file
+        const filePath = path.join(dir, file);
+
+        // get the file stats
+        const fileStat = statSync(filePath);
+
+        // if the file is a directory, recursively search the directory
+        if (fileStat.isDirectory()) {
+            return searchForFile(filePath, filename);
+        } else if (!file.endsWith(filename)) {
+            continue;
+        } else {
+            // if the file is a match, print it
+            console.log(filePath);
+            return (filePath as PathOrFileDescriptor);
+        }
+    } // fs.readFileSync(filePath)
+}
+
+
+// export const ParseFile = parseFile;
+// // export const jsonConfiguration = configJson; // JSON.parse(configJson);
+// export function withComments(input:string):string {
+//     return ParseCommentedSetting.parse(input) as unknown as string;
+// }
+// export const Parse = (arg0: string) => { 
+//     let o = Group.parse(`{${stripComments(arg0)}}`) as object;
+//     o = Object.assign(o, {[Object.keys(o).at(0) as string]:withComments(arg0)})
+//     // console.log()
+//     return o
+// };
+/**
+ * ## DeviceConfig
+    Represents the interface of fields that need to be modified for each device that will proxy `shairport-sync`.
+ */
+export interface DeviceConfig {
+        airplay_device_id: String, // * 0x<MACADDR>L
+        port: Number,
+        mdns_backend: 'avahi',
+        output_backend: "alsa" | "pipe" | "stdout",
+        interpolation: "auto" | "basic" | "soxr",
+        name: String
+}
+/**
+ * ## Comment
+    Within the `json` template for `shairport-sync` a comment represents any 
+    comment per section or field of the `libconfig` for each device.
+ */
 export interface Comment {
     // _description: Array<String> | Description;
     '$style'?: string;
     _isCommented?: boolean;
     _description: Array<String>;
 }
-
-export interface Section<TName, String> {
+const CommentWriter = (c: Comment, defined?: boolean) => {
+    switch (c.$style) {
+       case "CppStyle": //? '//'
+        if (c._description.length > 1) {
+            return '// ' + c._description.join('\n');
+        } else {
+            return '// ' + c._description.join('');
+        }
+        //return c._description.map((line) => '// '+line).join('\n');
+       case "CStyle": //? '/* */'
+        if (c._description.length > 1) {
+            return '/*\n ' + c._description.join('\n') + ' */';
+        } else {
+            return '/* ' + c._description.join('') + ' */';
+        }
+       case "ScriptStyle": //? '#'
+        if (c._description.length > 1) {
+                return '# ' + c._description.join('\n');
+            } else {
+                return '# ' + c._description.join('');
+        }
+    }
+}
+/**
+ * ## Section
+    Within the `json` template for `shairport-sync` a section represents any 
+    section of the `libconfig` for each device -- holding it KeyValue pairs for each field.
+ */
+export interface Section<PName = typeof String> {
     _comments: Comment;
-    TName: KV;
+    // PName: KV;
 }
 
+const SectionWriter = (name: String, s: object | Section) => {
+    let children = new Map<string, KV>();
+    const props = Object.entries(s) // .filter((elem) => { elem[0] !== '_comments' })
+            // console.info(childs)
+    for (let [key, value] of props) {
+        if (key == '_comments') {
+            continue
+        }
+        // console.log(key, value);
+        children = children.set(key, (value as KV))
+    }
+    return CommentWriter((s as Section)._comments) + `${name} = {\n` + Array.from(children.entries()).map(([name, kv]) => {
+        return name + ' = ' + KvWriter(kv);
+    }).join('\n') + '\n}\n';
+}
+/**
+ * ## KV
+    Within the `json` template for `shairport-sync` a KV represents any 
+    field with in the section of the `libconfig` for each device.
+ */
 export interface KV {
     _value: any;
     '$type': String;
     _description: Comment;
 }
-
+const KvWriter = (kv: KV) => {
+    return kv._value + '; ' + CommentWriter(kv._description);
+}
+/** ## ParsedConfiguration 
+    Alias for UI ready array. 
+*/ 
 export type ParsedConfiguration = Array<{title: string; description: string[]; children: Map<string,KV>}>;
 
 export interface Sps extends Service {
@@ -145,14 +256,14 @@ export class SPS extends BasicServiceDiscovery<Sps> {
         return [this._args[1], this._args];
     }
 
-    private preloadConfig(path?: string) {
-        return JSON.parse(readFileSync(PWD+"/src/lib/server/spsConf.json", 'utf-8'))
+    private static preloadConfig(path?: string) {
+        return JSON.parse(readFileSync(PWD+"/spsConf.json", 'utf-8'))
     }
 
     protected parsedConfiguration(config?: object): ParsedConfiguration {
         const data  = Array<{title: string; description: string[]; children: Map<string,KV>}>()
     // console.info(layOutdata)
-        const dataObj = config ?? Object(this.preloadConfig());
+        const dataObj = config ?? Object(SPS.preloadConfig());
         Object.entries(dataObj).forEach(entry => {
             const props = entry[1] as Object;
             const comments = (props as any)['_comments'] as object
@@ -171,5 +282,38 @@ export class SPS extends BasicServiceDiscovery<Sps> {
             data.push({title: entry[0], description: des, children: childsMap})
         })
         return data;
-    } 
+    }
+
+    protected static parseConfiguration(config?: object) {
+        const dataObj = config ?? Object(SPS.preloadConfig());
+        Object.entries(dataObj).forEach(entry => {
+            const sect = entry[1] as Section;
+            const comments = sect._comments
+            const des = comments._description
+            let childsMap = new Map<string, KV>()
+            const props = Object.entries(sect) // .filter((elem) => { elem[0] !== '_comments' })
+            // console.info(childs)
+            for (let [key, value] of props) {
+                if (key == '_comments') {
+                    continue
+                }
+                // console.log(key, value);
+                childsMap = childsMap.set(key, (value as KV))
+            }
+            console.log(SectionWriter(entry[0], sect))
+        })
+    }
+
+    static test() {
+
+        // const file = ParseFile('spsTemplate.conf', __dirname)
+        // const jsonObj = JSON.stringify(
+        //     file, null, 4
+        // )
+        // const cfg = toLibConfigFile(file)
+
+        const cfg = SPS.parseConfiguration();
+        
+        console.log(cfg);
+    }
 }
