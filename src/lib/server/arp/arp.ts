@@ -235,9 +235,9 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
   private  _proc: ChildProcess;
   // readonly _type: ArpCallType;
   constructor(_type:ArpCall = ArpCall.ALL, ipAddress?:string) {
-    super('custom')
+    super('service:arp')
     this._type = _type;
-
+    
     const args = new Array<string>();
     args.push(this._type);
     switch(this._type) {
@@ -340,3 +340,5 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
   }
 
 }
+
+export { ArpCall };

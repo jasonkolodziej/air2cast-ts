@@ -26,6 +26,7 @@ onEvent<T = EventCall>(calling:T): Subscribable<this, [typeof calling, [String, 
 }
   
 export type ArpCallType = keyof typeof ArpCall;
+
 export enum ArpCall {
     ALL = '-a',
     NAMED = '-n'
