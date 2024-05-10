@@ -38,16 +38,28 @@ export const searchForFile = (dir: string, filename: string): PathOrFileDescript
     } // fs.readFileSync(filePath)
 }
 
+
+export const ParseFile = parseFile;
+// export const jsonConfiguration = configJson; // JSON.parse(configJson);
+export function withComments(input:string):string {
+    return ParseCommentedSetting.parse(input) as unknown as string;
+}
+export const Parse = (arg0: string) => { 
+    let o = Group.parse(`{${stripComments(arg0)}}`) as object;
+    o = Object.assign(o, {[Object.keys(o).at(0) as string]:withComments(arg0)})
+    // console.log()
+    return o
+};
 /**
  * ## DeviceConfig
     Represents the interface of fields that need to be modified for each device that will proxy `shairport-sync`.
  */
 export interface DeviceConfig {
-        airplay_device_id: String, // * 0x<MACADDR>L
-        port: Number,
-        mdns_backend: 'avahi',
-        output_backend: "alsa" | "pipe" | "stdout",
-        interpolation: "auto" | "basic" | "soxr",
+        // airplay_device_id: String, // * 0x<MACADDR>L
+        // port: Number,
+        // mdns_backend: 'avahi',
+        // output_backend: "alsa" | "pipe" | "stdout",
+        // interpolation: "auto" | "basic" | "soxr",
         name: String
 }
 /**
@@ -91,8 +103,34 @@ const CommentWriter = (c: Comment, isKV: boolean = false) => {
  */
 export interface Section<PName = typeof String> {
     _comments: Comment;
-    // PName: KV;
 }
+
+export interface SectionProperty {
+    [key: string]:KV;
+}
+
+const UpdateFields = (dc: DeviceConfig, sections: Object, secName?: string):Object => {
+    let d = Object.entries(dc);
+    const sects = Object.entries(sections)
+        .filter(([n,_]) => secName === n || secName === undefined )
+        .map(([sectionName, val]) => {
+            console.debug('in', sectionName);
+            const section = Object(val as Section);
+            d = d.map(([seg, nVal]) => {
+                if (section.hasOwnProperty(seg)) {
+                    console.debug(`section: ${sectionName} contains: ${seg}`);
+                    const kval = section[seg] as KV;
+                    kval._value = nVal;
+                    return [seg, undefined];
+                }
+                return [seg, nVal];
+            }, d);
+            return section;
+    })
+    return sects;
+    }
+
+// export type SectionPropertyName = keyof SectionProperty;
 
 const SectionWriter = (name: String, s: object | Section) => {
     let children = new Map<string, KV>();
@@ -275,22 +313,21 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 
     protected static parseConfiguration(config?: object) {
         const dataObj = config ?? Object(SPS.preloadConfig());
-        Object.entries(dataObj).forEach(entry => {
-            const sect = entry[1] as Section;
-            const comments = sect._comments
-            const des = comments._description
-            let childsMap = new Map<string, KV>()
-            const props = Object.entries(sect) // .filter((elem) => { elem[0] !== '_comments' })
-            // console.info(childs)
-            for (let [key, value] of props) {
-                if (key == '_comments') {
-                    continue
-                }
-                // console.log(key, value);
-                childsMap = childsMap.set(key, (value as KV))
+       return Object.fromEntries(Object.entries<Section>(dataObj).map(entry => {
+        const sect = entry[1] as Section;
+        let childsMap = new Map<string, KV>()
+        const props = Object.entries(sect).filter((elem) => { elem[0] !== '_comments' })
+        // console.info(childs)
+        for (let [key, value] of props) {
+            if (key == '_comments') {
+                continue
             }
-            console.log(SectionWriter(entry[0], sect))
-        })
+            // console.log(key, value);
+            childsMap = childsMap.set(key, (value as KV))
+        }
+        return [entry[0], new Object(Object.defineProperties(sect, Object.fromEntries(childsMap.entries())))]
+        // console.log(SectionWriter(entry[0], sect))
+    }))
     }
 
     static test() {
@@ -302,7 +339,8 @@ export class SPS extends BasicServiceDiscovery<Sps> {
         // const cfg = toLibConfigFile(file)
 
         const cfg = SPS.parseConfiguration();
+        const updated = UpdateFields({name: "HELLOJASON"}, cfg, 'general')
         
-        console.log(cfg);
+        console.log(Object.entries(updated));
     }
 }
