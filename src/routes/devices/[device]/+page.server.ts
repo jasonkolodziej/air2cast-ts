@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { modifiedData, type KV } from "$lib/server/sps/sps.server";
+import type { KV } from '$lib/server/sps/types';
 
 
 export const load: PageServerLoad = async ({params,
@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({params,
         data: {
             device: device?.deviceData,
             deviceStatus: await device?.deviceStatus,
-            config: modifiedData(device?.deviceData?.templateConfiguration)
+            // config: modifiedData(device?.deviceData?.templateConfiguration)
         },
         
         route: route.id

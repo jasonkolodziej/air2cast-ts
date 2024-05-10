@@ -1,7 +1,6 @@
 // import {ReceiverController, type PersistentClient} from 'chromecast-client'
 import { Protocol, type MDNSDiscoveryOptions } from 'tinkerhub-mdns';
 // import { type DeviceServices } from '$lib/server/mdns.server';
-import { ReceiverController } from '@foxxmd/chromecast-client';
 
 //ChromecastServiceName is the name of the service to lookup via mDNS for finding chromecast devices
 export const chromecastServiceName = "_googlecast._tcp"
