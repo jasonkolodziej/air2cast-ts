@@ -10,8 +10,6 @@ import path from "path";
 import { createLogger, type Logger } from "@lvksh/logger";
 import chalk from 'chalk';
 
-// const chalk = new Chalk();
-
 export const searchForFile = (dir: string, filename: string): PathOrFileDescriptor | undefined => {
     // read the contents of the directory
     const files = readdirSync(dir);
@@ -171,7 +169,42 @@ export class SPS extends BasicServiceDiscovery<Sps> {
     private readonly  _parent: Subscribable<Readable, any[]>;
     // private readonly  _nextPub: AbstractServicePublisher = new Event();
     // private errorEvent: Event<this, [ Error | string ]>;
-    protected logger: Logger<string>;
+    protected logger: Logger<string> = createLogger(
+            {
+                ok: {
+                    label: chalk.greenBright(`[OK]`),
+                    newLine: '| ',
+                    newLineEnd: '\\-',
+                },
+                debug: chalk.magentaBright(`[DEBUG]`),
+                info: {
+                    label: chalk.cyan(`[INFO]`),
+                    newLine: chalk.cyan(`⮡`),
+                    newLineEnd: chalk.cyan(`⮡`),
+                },
+                ffmpegError: {
+                    label: chalk.bgRed.white.bold(`[TRANSCODER]`),
+                    newLine: chalk.bgRed.white.bold('| '),
+                    newLineEnd: chalk.bgRed.white.bold('\\-'),
+                },
+                spsError: {
+                    label: chalk.bgYellowBright.black.bold(`[shairport-sync]`),
+                    newLine: chalk.bgYellowBright.black.bold('| '),
+                    newLineEnd: chalk.bgYellowBright.black.bold('\\-'),
+                },
+            },
+            { 
+                padding: 'PREPEND', 
+            //     preProcessors: [
+            //         (inputs, { name, err }) => {
+            //             let index = 0;
+
+            //             return inputs.map(it => `[Called ${name} ${++index} times] ${it}`);
+            //         }                    
+            // ]
+            },
+            console.log
+    );
     private  _proc: ChildProcess;
     private _next: ChildProcess;
     private _args: Array<string> = new Array('-c');
@@ -236,48 +269,17 @@ export class SPS extends BasicServiceDiscovery<Sps> {
     ];
 
 
-    constructor(deviceName:string) {
+    constructor(deviceInfo:DeviceConfig) {
         super('sps:ffmpeg');
-        this.logger = createLogger(
-            {
-                ok: {
-                    label: chalk.greenBright(`[OK]`),
-                    newLine: '| ',
-                    newLineEnd: '\\-',
-                },
-                debug: chalk.magentaBright(`[DEBUG]`),
-                info: {
-                    label: chalk.cyan(`[INFO]`),
-                    newLine: chalk.cyan(`⮡`),
-                    newLineEnd: chalk.cyan(`⮡`),
-                },
-                ffmpegError: {
-                    label: chalk.bgRed.white.bold(`[TRANSCODER]`),
-                    newLine: chalk.bgRed.white.bold('| '),
-                    newLineEnd: chalk.bgRed.white.bold('\\-'),
-                },
-                spsError: {
-                    label: chalk.bgYellowBright.black.bold(`[shairport-sync]`),
-                    newLine: chalk.bgYellowBright.black.bold('| '),
-                    newLineEnd: chalk.bgYellowBright.black.bold('\\-'),
-                },
-            },
-            { 
-                padding: 'PREPEND', 
-            //     preProcessors: [
-            //         (inputs, { name, err }) => {
-            //             let index = 0;
-
-            //             return inputs.map(it => `[Called ${name} ${++index} times] ${it}`);
-            //         }                    
-            // ]
-            },
-            console.log
-        );
-        const [_path, configuration] = this.args(deviceName);
+        // * check to see if file exists
+        this.inform('Resolving Configuration')
+        const [_path, configuration] = this.args(deviceInfo);
+        this.inform('Spawning Shairport Sync');
         this._proc = spawn('shairport-sync', configuration);
+        this.inform('Spawning FFMpeg');
         this._next = spawn('ffmpeg', this.ffmpegConfig);
         // * send data from shairport-sync to ffmpeg stdout-->stdin
+        this.inform('Piping children');
         this._proc.stdout!.pipe(this._next.stdin!);
         this._proc.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'sps'));
         this._next.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'ffmpeg'));
@@ -286,21 +288,37 @@ export class SPS extends BasicServiceDiscovery<Sps> {
         this._parent.subscribe((listener) => {
         this.debug('listening', listener);
             this.availableEvent.emit({
-                configPath: _path, content: listener as Buffer,
+                configPath: _path, 
+                content: listener as Buffer,
                 id: "Sps",
                 templateConfiguration: this.parsedConfiguration()
             })
         });
         // this.availableEvent.subscribe
     }
+    private get spsError() {
+        return this.logger.spsError;
+    }
+    private get ffmpegError() {
+        return this.logger.ffmpegError;
+    }
+    private get ok() {
+        return this.logger.ok;
+    }
+    private get debugMe() {
+        return this.logger.debug;
+    }
+    private get inform() {
+        return this.logger.info;
+    }
 
     protected override logAndEmitError(error: Error, namepaceSegment?: string, message: string = 'true'): void {
         switch(namepaceSegment) {
             case 'sps':
-            this.logger.spsError(error.message);
+            this.spsError(error.message);
                 break;
             case 'ffmpeg':
-            this.logger.ffmpegError(error.message);
+            this.ffmpegError(error.message);
                 break;
             default:
             if (message !== 'true') {
@@ -309,22 +327,59 @@ export class SPS extends BasicServiceDiscovery<Sps> {
         }
     }
     
-    private args(deviceName:string):[string, Array<string>] {
+    private args(info: DeviceConfig):[string, Array<string>] {
         if (this._args.length === 2) {
             this.logAndEmitError(new Error(`Arguments for shairport-sync have already been set: ${this._args}`), 'SPS.args():')
         } else {
-            switch (platform()) {
+            let fileName: string = '';
+            const pForm = platform()
+            switch (pForm) {
                 // case: 'aix'
                 case 'linux':
-                    this._args.push(`/etc/shairport-sync${deviceName}.conf`)
+                    fileName = `/etc/shairport-sync${info.name}.conf`;
+                    // existsSync
+                    break;
                 // case 'openbsd':
                 // case 'darwin':
                 // case 'freebsd':
                 // case 'sunos':
                 // case: 'win32':
             }
+            if(existsSync(fileName)) {
+                this.debugMe('File Found!', fileName);
+                this._args.push(`/etc/shairport-sync${info.name}.conf`);
+            } else {
+                this.debugMe('WARNING: Attempting to generate a configuration!', info.name, `on platform ${pForm}`);
+                return this.createConfFile(info);
+            }
         }
         return [this._args[1], this._args];
+    }
+
+    private createConfFile(config: DeviceConfig, specificSection?: string):[string, Array<string>] {
+        //* resolve file path based on OS
+        let fileName:string = ''
+        switch (platform()) {
+            // case: 'aix'
+            case 'linux':
+                fileName = `/etc/shairport-sync${config.name}.conf`;
+                break;
+            // case 'openbsd':
+            // case 'darwin':
+            // case 'freebsd':
+            // case 'sunos':
+            // case: 'win32':
+            default:
+                this.spsError('SPS.createConfFile:',`${platform()} is NOT supported`);
+                this.destroy();
+        }
+        //* get the template
+        const template = SPS.parseConfiguration();
+        //* modify them for the specific device
+        const revised = UpdateFields(config, template, specificSection)
+        writeFileSync(fileName, SectionsWriter(revised), 'utf-8')
+        this._args.push(fileName);
+        return [fileName, this._args];
     }
 
     private static preloadConfig(path?: string) {
