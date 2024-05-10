@@ -2,6 +2,9 @@
 //? import type { env } from "$env/dynamic/private";
 //? for information about these interfaces
 
+import type { Device } from "$lib/server/devices/device";
+import type { ServiceDiscovery } from "tinkerhub-discovery";
+
 declare global {
 	namespace App {
 		// set(env, )
@@ -14,6 +17,7 @@ declare global {
 
 			//? Refer to `$lib/server/service/scratchLogging.ts`
 			logLocals: ScratchLogging.LoggingLocals;
+			discovered: ServiceDiscovery<Device>
 		}
 		// interface PageData {}
 		// interface PageState {}
