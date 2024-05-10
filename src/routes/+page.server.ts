@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import type { KV } from "$lib/server/spsConf.server";
+import type { KV } from "$lib/server/sps/sps.server";
 
 
 

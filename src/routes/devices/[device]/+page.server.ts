@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { modifiedData, type KV } from "$lib/server/spsConf.server";
+import { modifiedData, type KV } from "$lib/server/sps/sps.server";
 
 
 export const load: PageServerLoad = async ({params,

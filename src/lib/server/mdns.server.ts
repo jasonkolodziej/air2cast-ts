@@ -6,7 +6,7 @@ import type { PersistentClientOptions } from '@foxxmd/chromecast-client/dist/cjs
 import { type MAC } from './mac/MAC';
 import type { Subscribable } from 'atvik';
 import { ArpDataCache, arpDevice, type ArpData } from './arp.server'
-import { spsDataObj } from './spsConf.server'
+import { spsDataObj } from './sps/sps.server'
 // import { Injectable } from ''
 
 /**
