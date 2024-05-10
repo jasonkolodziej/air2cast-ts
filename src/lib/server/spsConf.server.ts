@@ -7,13 +7,10 @@ import { platform } from "os";
 import { BasicServiceDiscovery, type Service } from "tinkerhub-discovery";
 import { type PathOrFileDescriptor, readdirSync, readFileSync, statSync } from "fs";
 import path from "path";
-// import {parseFile, stripComments} from "../libconfig";
-// import { ParseCommentedSetting } from "../libconfig/parts/Comments";
-// import { Group } from "../libconfig/parts/AssignmentStatement";
-// import { convert2Json } from "../libconfig/commands";
-// import { toLibConfigFile } from "../libconfig/toLibConfigFile";
-import { debug } from 'debug';
+import { createLogger, type Logger } from "@lvksh/logger";
+import chalk from 'chalk';
 
+// const chalk = new Chalk();
 
 export const searchForFile = (dir: string, filename: string): PathOrFileDescriptor | undefined => {
     // read the contents of the directory
@@ -39,18 +36,6 @@ export const searchForFile = (dir: string, filename: string): PathOrFileDescript
     } // fs.readFileSync(filePath)
 }
 
-
-export const ParseFile = parseFile;
-// export const jsonConfiguration = configJson; // JSON.parse(configJson);
-export function withComments(input:string):string {
-    return ParseCommentedSetting.parse(input) as unknown as string;
-}
-export const Parse = (arg0: string) => { 
-    let o = Group.parse(`{${stripComments(arg0)}}`) as object;
-    o = Object.assign(o, {[Object.keys(o).at(0) as string]:withComments(arg0)})
-    // console.log()
-    return o
-};
 /**
  * ## DeviceConfig
     Represents the interface of fields that need to be modified for each device that will proxy `shairport-sync`.
@@ -186,7 +171,7 @@ export class SPS extends BasicServiceDiscovery<Sps> {
     private readonly  _parent: Subscribable<Readable, any[]>;
     // private readonly  _nextPub: AbstractServicePublisher = new Event();
     // private errorEvent: Event<this, [ Error | string ]>;
-    protected override debug: debug.Debugger;
+    protected logger: Logger<string>;
     private  _proc: ChildProcess;
     private _next: ChildProcess;
     private _args: Array<string> = new Array('-c');
@@ -254,22 +239,49 @@ export class SPS extends BasicServiceDiscovery<Sps> {
     constructor(deviceName:string) {
         super('sps:ffmpeg');
             // console.debug(args);
-        this.debug = debug('sps:discovery');
-        debug.inspectOpts = {colors: true};
-        this.debug.color = 'red';
+        // this.debug = debug('sps:discovery');
+        // debug.inspectOpts = {colors: true};
+        // this.debug.color = 'red';
         // debug.selectColor('sps:discovery')
-        this.debug.enabled = true;
-        this.debug.log = console.log.bind(console);
+        // this.debug.enabled = true;
+        // this.debug.log = console.log.bind(console);
         // this.debug.log = console.log.bind(console);
         // this.debug.extend('sps:discovery:', )
         // this.errorEvent = new Event(this);
+        this.logger = createLogger(
+            {
+                ok: {
+                    label: chalk.greenBright(`[OK]`),
+                    newLine: '| ',
+                    newLineEnd: '\\-',
+                },
+                debug: chalk.magentaBright(`[DEBUG]`),
+                info: {
+                    label: chalk.cyan(`[INFO]`),
+                    newLine: chalk.cyan(`⮡`),
+                    newLineEnd: chalk.cyan(`⮡`),
+                },
+                ffmpegError: {
+                    label: chalk.bgRed.white.bold(`[TRANSCODER]`),
+                    newLine: chalk.bgRed.white.bold('| '),
+                    newLineEnd: chalk.bgRed.white.bold('\\-'),
+                },
+                spsError: {
+                    label: chalk.bgYellowBright.black.bold(`[shairport-sync]`),
+                    newLine: chalk.bgYellowBright.black.bold('| '),
+                    newLineEnd: chalk.bgYellowBright.black.bold('\\-'),
+                },
+            },
+            { padding: 'PREPEND' },
+            console.log
+        );
         const [_path, configuration] = this.args(deviceName);
         this._proc = spawn('shairport-sync', configuration);
         this._next = spawn('ffmpeg', this.ffmpegConfig);
         // * send data from shairport-sync to ffmpeg stdout-->stdin
         this._proc.stdout!.pipe(this._next.stdin!);
-        this._proc.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'service:sps:'));
-        this._next.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'service:ffmpeg:'));
+        this._proc.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'sps'));
+        this._next.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'ffmpeg'));
         // * get output from ffmpeg
         this._parent = createEventAdapter(this._next.stdout!, 'data');
         this._parent.subscribe((listener) => {
@@ -283,36 +295,19 @@ export class SPS extends BasicServiceDiscovery<Sps> {
         // this.availableEvent.subscribe
     }
 
-    protected override logAndEmitError(error: Error, namespaceSegment?: string, message?: string): void {
-        const segment = namespaceSegment ?? this.debug.namespace;
-        // let extendedDebug: debug.Debugger;
-        let newColor: string = '';
-        switch(segment) {
-            case 'service:sps:':
-            this.debug.color = newColor = 'orange';
+    protected override logAndEmitError(error: Error, namepaceSegment?: string, message: string = 'true'): void {
+        switch(namepaceSegment) {
+            case 'sps':
+            this.logger.spsError(error.message);
                 break;
-            case 'service:ffmpeg:':
-            this.debug.color = newColor = 'red';
+            case 'ffmpeg':
+            this.logger.ffmpegError(error.message);
                 break;
             default:
-                newColor = this.debug.color;
+            if (message !== 'true') {
+                super.logAndEmitError(error, message);
+            }
         }
-        // * get wrapped message
-        const wrappedMessage = error.message;
-        const extendedDebug = this.debug.extend(segment, ':');
-        extendedDebug.enabled = this.debug.enabled;
-        
-       console.error(this.debug.color);
-        extendedDebug(
-            (newColor === 'yellow') ? message : '\nNotice:', // ? are we just notifying the user
-            (newColor === 'yellow') ? error : '\n' + wrappedMessage //? if we are then don't through and error
-        )
-        if (newColor === 'yellow') {
-            super.logAndEmitError(error, message);
-        }
-		// this.debug(message, error);
-        // this.errorEvent.emit(error);
-		// super.logAndEmitError('', );
     }
     
     private args(deviceName:string):[string, Array<string>] {
