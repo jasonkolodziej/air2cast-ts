@@ -1,6 +1,5 @@
 // since there's no dynamic data here, we can prerender
 // it so that it gets served as a static asset in prod
-
 import type { DeviceServices } from "$lib/server/mdns.server";
 import type { PageLoad } from "./$types";
 // export const prerender = true;
