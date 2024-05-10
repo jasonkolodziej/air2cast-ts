@@ -33,31 +33,6 @@ export interface DeviceServicePub extends Service {
     readonly onClient: Subscribable<this, [PersistentClient]>;
 }
 
-export const serializeNonPOJOs = (value: object | null) => {
-    return structuredClone(value)
-};
-
-interface Serializable<T> {
-    /**
-     * serialize(value: T | null): object
-    */
-    serialize?(value: T | null): T | null;
-}
-
-abstract class Serialize<T extends object> implements Serializable<object> {
-    // abstract _t(): T | null;
-    // constructor(val: T | null) {
-        
-    // }
-    serialize(value: T | null): T | null {
-        return structuredClone(value);
-    }
-    
-    static serialize<T>(value: T | null): T | null {
-        return structuredClone(value);
-    }
-}
-
 export class Device extends AbstractDestroyable implements DeviceServicePub {
     protected beforeDestroy(): Promise<void> {
         throw new Error("Method not implemented.");

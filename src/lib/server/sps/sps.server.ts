@@ -6,59 +6,31 @@ import { Readable } from "stream";
 import { platform } from "os";
 import { BasicServiceDiscovery } from "tinkerhub-discovery";
 import { readFileSync, existsSync, writeFileSync } from "fs";
-import { createLogger, type Logger } from "@lvksh/logger";
+import { type Logger } from "@lvksh/logger";
 import chalk from 'chalk';
 import type { KV, ParsedConfiguration, Section, Sections, Sps, DeviceConfig } from '$lib/server/sps/types';
 import { SectionsWriter, UpdateFields } from '$lib/server/sps/utils';
-
-
+import { ChalkLogger } from '$lib/server/service/type';
 
 export abstract class AbstractChildProc {}
 
 export class SPS extends BasicServiceDiscovery<Sps> {
     private readonly  _parent: Subscribable<Readable, any[]>;
-    // private readonly  _nextPub: AbstractServicePublisher = new Event();
-    // private errorEvent: Event<this, [ Error | string ]>;
-    protected logger: Logger<string> = createLogger(
-            {
-                ok: {
-                    label: chalk.greenBright(`[OK]`),
-                    newLine: '| ',
-                    newLineEnd: '\\-',
-                },
-                debug: chalk.magentaBright(`[DEBUG]`),
-                info: {
-                    label: chalk.cyan(`[INFO]`),
-                    newLine: chalk.cyan(`⮡`),
-                    newLineEnd: chalk.cyan(`⮡`),
-                },
-                ffmpegError: {
-                    label: chalk.bgRed.white.bold(`[TRANSCODER]`),
-                    newLine: chalk.bgRed.white.bold('| '),
-                    newLineEnd: chalk.bgRed.white.bold('\\-'),
-                },
-                spsError: {
-                    label: chalk.bgYellowBright.black.bold(`[shairport-sync]`),
-                    newLine: chalk.bgYellowBright.black.bold('| '),
-                    newLineEnd: chalk.bgYellowBright.black.bold('\\-'),
-                },
-            },
-            { 
-                padding: 'PREPEND', 
-            //     preProcessors: [
-            //         (inputs, { name, err }) => {
-            //             let index = 0;
-
-            //             return inputs.map(it => `[Called ${name} ${++index} times] ${it}`);
-            //         }                    
-            // ]
-            },
-            console.log
-    );
+    protected logger: Logger<string> = ChalkLogger({
+        ffmpegError: {
+            label: chalk.bgRed.white.bold(`[TRANSCODER]`),
+            newLine: chalk.bgRed.white.bold('| '),
+            newLineEnd: chalk.bgRed.white.bold('\\-'),
+        },
+        spsError: {
+            label: chalk.bgYellowBright.black.bold(`[shairport-sync]`),
+            newLine: chalk.bgYellowBright.black.bold('| '),
+            newLineEnd: chalk.bgYellowBright.black.bold('\\-'),
+        },
+    });
     private  _proc: ChildProcess;
     private _next: ChildProcess;
     private _args: Array<string> = new Array('-c');
-   
 /**
     * ffmpegArgs https://ffmpeg.org/ffmpeg-protocols.html#toc-pipe
         ? (e.g. 0 for stdin, 1 for stdout, 2 for stderr).

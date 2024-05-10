@@ -340,5 +340,3 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
   }
 
 }
-
-export { ArpCall };

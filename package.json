@@ -46,11 +46,12 @@
 	"packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610",
 	"dependencies": {
 		"@foxxmd/chromecast-client": "^1.0.4",
-		"atvik": "^3.2.1",
-		"sprache": "^1.2.2",
-		"tinkerhub-mdns": "^0.5.1",
-		"tinkerhub-discovery": "^0.6.0",
 		"@lvksh/logger": "^1.6.4",
-		"chalk": "^4.1.0"
+		"atvik": "^3.2.1",
+		"chalk": "^4.1.0",
+		"sprache": "^1.2.2",
+		"tinkerhub-discovery": "^0.6.0",
+		"tinkerhub-mdns": "^0.5.1",
+		"winston": "^3.13.0"
 	}
 }
