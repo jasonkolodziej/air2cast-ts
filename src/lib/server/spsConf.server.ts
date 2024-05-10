@@ -12,6 +12,7 @@ import path from "path";
 // import { Group } from "../libconfig/parts/AssignmentStatement";
 // import { convert2Json } from "../libconfig/commands";
 // import { toLibConfigFile } from "../libconfig/toLibConfigFile";
+import { debug } from 'debug';
 
 
 export const searchForFile = (dir: string, filename: string): PathOrFileDescriptor | undefined => {
@@ -39,6 +40,17 @@ export const searchForFile = (dir: string, filename: string): PathOrFileDescript
 }
 
 
+export const ParseFile = parseFile;
+// export const jsonConfiguration = configJson; // JSON.parse(configJson);
+export function withComments(input:string):string {
+    return ParseCommentedSetting.parse(input) as unknown as string;
+}
+export const Parse = (arg0: string) => { 
+    let o = Group.parse(`{${stripComments(arg0)}}`) as object;
+    o = Object.assign(o, {[Object.keys(o).at(0) as string]:withComments(arg0)})
+    // console.log()
+    return o
+};
 /**
  * ## DeviceConfig
     Represents the interface of fields that need to be modified for each device that will proxy `shairport-sync`.
@@ -62,7 +74,7 @@ export interface Comment {
     _isCommented?: boolean;
     _description: Array<String>;
 }
-const CommentWriter = (c: Comment, isKV: boolean = false) => {
+const CommentWriter = (c: Comment, isKV: boolean = false):string => {
     switch (c.$style) {
        case "CppStyle": //? '//'
         if(isKV === true && c._isCommented) {
@@ -124,6 +136,8 @@ const UpdateFields = (dc: DeviceConfig, sections: Sections, secName?: string):Se
     }));
 }
 
+// export type SectionPropertyName = keyof SectionProperty;
+
 const SectionsWriter = (s: Sections) => Object.entries<Section>(s).map(val => SectionWriter(...val)).join('');
 
 const SectionWriter = (name: String, s: object | Section) => {
@@ -171,6 +185,8 @@ export abstract class AbstractChildProc {}
 export class SPS extends BasicServiceDiscovery<Sps> {
     private readonly  _parent: Subscribable<Readable, any[]>;
     // private readonly  _nextPub: AbstractServicePublisher = new Event();
+    // private errorEvent: Event<this, [ Error | string ]>;
+    protected override debug: debug.Debugger;
     private  _proc: ChildProcess;
     private _next: ChildProcess;
     private _args: Array<string> = new Array('-c');
@@ -238,13 +254,22 @@ export class SPS extends BasicServiceDiscovery<Sps> {
     constructor(deviceName:string) {
         super('sps:ffmpeg');
             // console.debug(args);
+        this.debug = debug('sps:discovery');
+        debug.inspectOpts = {colors: true};
+        this.debug.color = 'red';
+        // debug.selectColor('sps:discovery')
+        this.debug.enabled = true;
+        this.debug.log = console.log.bind(console);
+        // this.debug.log = console.log.bind(console);
+        // this.debug.extend('sps:discovery:', )
+        // this.errorEvent = new Event(this);
         const [_path, configuration] = this.args(deviceName);
         this._proc = spawn('shairport-sync', configuration);
         this._next = spawn('ffmpeg', this.ffmpegConfig);
         // * send data from shairport-sync to ffmpeg stdout-->stdin
         this._proc.stdout!.pipe(this._next.stdin!);
-        this._proc.stderr?.on('data', (err) => this.logAndEmitError(err, 'sps'));
-        this._next.stderr?.on('data', (err) => this.logAndEmitError(err, 'ffmpeg'));
+        this._proc.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'service:sps:'));
+        this._next.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'service:ffmpeg:'));
         // * get output from ffmpeg
         this._parent = createEventAdapter(this._next.stdout!, 'data');
         this._parent.subscribe((listener) => {
@@ -258,6 +283,37 @@ export class SPS extends BasicServiceDiscovery<Sps> {
         // this.availableEvent.subscribe
     }
 
+    protected override logAndEmitError(error: Error, namespaceSegment?: string, message?: string): void {
+        const segment = namespaceSegment ?? this.debug.namespace;
+        // let extendedDebug: debug.Debugger;
+        let newColor: string = '';
+        switch(segment) {
+            case 'service:sps:':
+            this.debug.color = newColor = 'orange';
+                break;
+            case 'service:ffmpeg:':
+            this.debug.color = newColor = 'red';
+                break;
+            default:
+                newColor = this.debug.color;
+        }
+        // * get wrapped message
+        const wrappedMessage = error.message;
+        const extendedDebug = this.debug.extend(segment, ':');
+        extendedDebug.enabled = this.debug.enabled;
+        
+       console.error(this.debug.color);
+        extendedDebug(
+            (newColor === 'yellow') ? message : '\nNotice:', // ? are we just notifying the user
+            (newColor === 'yellow') ? error : '\n' + wrappedMessage //? if we are then don't through and error
+        )
+        if (newColor === 'yellow') {
+            super.logAndEmitError(error, message);
+        }
+		// this.debug(message, error);
+        // this.errorEvent.emit(error);
+		// super.logAndEmitError('', );
+    }
     
     private args(deviceName:string):[string, Array<string>] {
         if (this._args.length === 2) {
@@ -341,8 +397,8 @@ export class SPS extends BasicServiceDiscovery<Sps> {
         // const cfg = toLibConfigFile(file)
 
         const cfg = SPS.parseConfiguration();
-       const updated = UpdateFields({name: "HELLOJASON"}, cfg)
+       const updated = UpdateFields({name: "HELLOJASON"}, cfg);
         
-        console.log(cfg);
+        console.log(SectionsWriter(updated));
     }
 }
