@@ -238,16 +238,6 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 
     constructor(deviceName:string) {
         super('sps:ffmpeg');
-            // console.debug(args);
-        // this.debug = debug('sps:discovery');
-        // debug.inspectOpts = {colors: true};
-        // this.debug.color = 'red';
-        // debug.selectColor('sps:discovery')
-        // this.debug.enabled = true;
-        // this.debug.log = console.log.bind(console);
-        // this.debug.log = console.log.bind(console);
-        // this.debug.extend('sps:discovery:', )
-        // this.errorEvent = new Event(this);
         this.logger = createLogger(
             {
                 ok: {
@@ -272,7 +262,16 @@ export class SPS extends BasicServiceDiscovery<Sps> {
                     newLineEnd: chalk.bgYellowBright.black.bold('\\-'),
                 },
             },
-            { padding: 'PREPEND' },
+            { 
+                padding: 'PREPEND', 
+            //     preProcessors: [
+            //         (inputs, { name, err }) => {
+            //             let index = 0;
+
+            //             return inputs.map(it => `[Called ${name} ${++index} times] ${it}`);
+            //         }                    
+            // ]
+            },
             console.log
         );
         const [_path, configuration] = this.args(deviceName);
