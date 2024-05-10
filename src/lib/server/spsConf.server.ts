@@ -39,17 +39,6 @@ export const searchForFile = (dir: string, filename: string): PathOrFileDescript
 }
 
 
-export const ParseFile = parseFile;
-// export const jsonConfiguration = configJson; // JSON.parse(configJson);
-export function withComments(input:string):string {
-    return ParseCommentedSetting.parse(input) as unknown as string;
-}
-export const Parse = (arg0: string) => { 
-    let o = Group.parse(`{${stripComments(arg0)}}`) as object;
-    o = Object.assign(o, {[Object.keys(o).at(0) as string]:withComments(arg0)})
-    // console.log()
-    return o
-};
 /**
  * ## DeviceConfig
     Represents the interface of fields that need to be modified for each device that will proxy `shairport-sync`.
@@ -95,42 +84,47 @@ const CommentWriter = (c: Comment, isKV: boolean = false) => {
         } else if (isKV) return '';
         return c._description.map((line) => '# '+line).join('\n');
     }
+    return ''
 }
 /**
  * ## Section
     Within the `json` template for `shairport-sync` a section represents any 
     section of the `libconfig` for each device -- holding it KeyValue pairs for each field.
  */
-export interface Section<PName = typeof String> {
+export interface Section {
     _comments: Comment;
+    properties: SectionPropertyMap;
 }
 
-export interface SectionProperty {
+export interface SectionPropertyMap {
     [key: string]:KV;
 }
 
-const UpdateFields = (dc: DeviceConfig, sections: Object, secName?: string):Object => {
+export interface Sections {
+    [key: string]:Section;
+}
+
+const UpdateFields = (dc: DeviceConfig, sections: Sections, secName?: string):Sections => {
     let d = Object.entries(dc);
-    const sects = Object.entries(sections)
-        .filter(([n,_]) => secName === n || secName === undefined )
+    return Object.fromEntries(Object.entries<Section>(sections) //.fromEntries(Object.entries(sections)
+        .filter(([n,_]) => secName == n || secName === undefined )
         .map(([sectionName, val]) => {
             console.debug('in', sectionName);
-            const section = Object(val as Section);
+            const section = Object(val);
             d = d.map(([seg, nVal]) => {
-                if (section.hasOwnProperty(seg)) {
+                if (section.hasOwnProperty(seg) && nVal !== undefined) {
                     console.debug(`section: ${sectionName} contains: ${seg}`);
                     const kval = section[seg] as KV;
                     kval._value = nVal;
                     return [seg, undefined];
                 }
                 return [seg, nVal];
-            }, d);
-            return section;
-    })
-    return sects;
-    }
+            });
+            return [sectionName, section];
+    }));
+}
 
-// export type SectionPropertyName = keyof SectionProperty;
+const SectionsWriter = (s: Sections) => Object.entries<Section>(s).map(val => SectionWriter(...val)).join('');
 
 const SectionWriter = (name: String, s: object | Section) => {
     let children = new Map<string, KV>();
@@ -312,6 +306,14 @@ export class SPS extends BasicServiceDiscovery<Sps> {
     }
 
     protected static parseConfiguration(config?: object) {
+        const dataObj = config ?? new Object(SPS.preloadConfig());
+        // return Object.setPrototypeOf(dataObj, Sections).map(([sectionName, section]) => {
+        //     return [sectionName, Object.setPrototypeOf]
+        // })
+        return (Object.setPrototypeOf(dataObj, Object({} as Sections)) as Sections)
+    }
+
+    protected static parseConfigurationTry(config?: object) {
         const dataObj = config ?? Object(SPS.preloadConfig());
        return Object.fromEntries(Object.entries<Section>(dataObj).map(entry => {
         const sect = entry[1] as Section;
@@ -339,8 +341,8 @@ export class SPS extends BasicServiceDiscovery<Sps> {
         // const cfg = toLibConfigFile(file)
 
         const cfg = SPS.parseConfiguration();
-        const updated = UpdateFields({name: "HELLOJASON"}, cfg, 'general')
+       const updated = UpdateFields({name: "HELLOJASON"}, cfg)
         
-        console.log(Object.entries(updated));
+        console.log(cfg);
     }
 }
