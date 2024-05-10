@@ -1,7 +1,6 @@
 import { type PathOrFileDescriptor, readdirSync, statSync } from "fs";
-import type { Comment, Section, Sections, KV } from "./types";
+import type { Comment, Section, Sections, KV, DeviceConfig } from "$lib/server/sps/types";
 import path from "path";
-import type { DeviceConfig } from "./sps";
 
 
 export const searchForFile = (dir: string, filename: string): PathOrFileDescriptor | undefined => {

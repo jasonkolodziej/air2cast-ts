@@ -1,12 +1,12 @@
-import { type AsyncSubscribable, type Listener, type Subscribable, AsyncEvent, Event } from "atvik";
-import type { MDNSService } from "tinkerhub-mdns";
-import { AbstractDestroyable } from "./service/type";
-import { Arp, ArpCall } from "./arp/arp";
-import { MAC, type Mac } from "./mac/MAC";
 import { PersistentClient, ReceiverController } from "@foxxmd/chromecast-client";
 import type { PersistentClientOptions } from "@foxxmd/chromecast-client/dist/cjs/src/persistentClient";
+import { Event, type Subscribable, AsyncEvent, type AsyncSubscribable, type Listener } from "atvik";
 import type { Service } from "tinkerhub-discovery";
-
+import type { MDNSService } from "tinkerhub-mdns";
+import { ArpCall } from "$lib/server/arp/types";
+import { MAC, type Mac } from "$lib/server/mac/MAC";
+import { AbstractDestroyable } from "$lib/server/service/type";
+import { ArpDiscovery } from "$lib/server/arp/discovery.server";
 
 interface RecordDetails {
     Id: String; // m.data.get('id') as string,
@@ -15,13 +15,15 @@ interface RecordDetails {
 }
 
 export type DeviceType = keyof typeof DeviceTypes;
+
 export enum DeviceTypes {
     TV = 'tv',
     GROUP = 'group',
     SPEAKER = 'speaker',
     UNKNOWN = ''
 }
-interface DeviceServicePub extends Service {
+
+export interface DeviceServicePub extends Service {
     Record: MDNSService;
     MacAddress?: Mac;
     Client: PersistentClient;
@@ -31,7 +33,32 @@ interface DeviceServicePub extends Service {
     readonly onClient: Subscribable<this, [PersistentClient]>;
 }
 
-class Device extends AbstractDestroyable implements DeviceServicePub {
+export const serializeNonPOJOs = (value: object | null) => {
+    return structuredClone(value)
+};
+
+interface Serializable<T> {
+    /**
+     * serialize(value: T | null): object
+    */
+    serialize?(value: T | null): T | null;
+}
+
+abstract class Serialize<T extends object> implements Serializable<object> {
+    // abstract _t(): T | null;
+    // constructor(val: T | null) {
+        
+    // }
+    serialize(value: T | null): T | null {
+        return structuredClone(value);
+    }
+    
+    static serialize<T>(value: T | null): T | null {
+        return structuredClone(value);
+    }
+}
+
+export class Device extends AbstractDestroyable implements DeviceServicePub {
     protected beforeDestroy(): Promise<void> {
         throw new Error("Method not implemented.");
     }
@@ -134,9 +161,9 @@ class Device extends AbstractDestroyable implements DeviceServicePub {
             this.logAndEmitError(Error('host not defined'))
             return;
         }
-        const arp = new Arp(ArpCall.NAMED, someHost);
-        const handle = arp.onAvailable((_, [id, arp]) => {
-            this.withMACUpdate(arp.mac_address);
+        const arp = new ArpDiscovery(ArpCall.NAMED, someHost)
+        const handle = arp.onAvailable((a) => {
+            this.withMACUpdate(a.mac_address);
         });
         // return mac;
     }
@@ -147,10 +174,8 @@ class Device extends AbstractDestroyable implements DeviceServicePub {
             this.logAndEmitError(Error('host not defined'))
             return;
         }
-        const arp = new Arp(ArpCall.NAMED, someHost);
-        const mac: MAC = (await arp.once().then(([calling, [id, val]]) => val.mac_address))
-            // const handle = arp.onAvailable((_, [id, arp]) => {
-                // console.log(arp);
+        const arp = new ArpDiscovery(ArpCall.NAMED, someHost);
+        const mac: MAC = (await arp.onUpdate.once().then(([id, val]) => val.mac_address))
         this.withMACUpdate(mac);
     }
 
@@ -186,36 +211,3 @@ class Device extends AbstractDestroyable implements DeviceServicePub {
 		return this.onDevice.subscribe;
 	}
 }
-
-
-const mapped = discover.map({
-    create: service => new Device(service),
-    update: ({ service, previousService, previousMappedService }) => {
-        /*
-         * `service` points to the updated service to map
-         * `previousService` is the previous version of the service to map
-         * `previousMappedService` is what `create` or `update` mapped to previously
-         * 
-         * Either:
-         * 
-         * 1) Return null/undefined to remove the service
-         * 2) Return the previously mapped service
-         * 3) Return a new mapped service
-         * 
-         */
-        (previousMappedService as DeviceService).withUpdate(service);
-        return previousMappedService;
-      },
-      destroy: mappedService => mappedService.destroy() /* perform some destruction of the mapped service */
-});
-
-mapped.onAvailable((device) => {
-    // const dev = await device.onDevice.once()
-    device.onDevice((listen) => {console.debug(listen)})
-    // device.onMac((maybeMac) => {console.debug(maybeMac)})
-})
-
-mapped.onUpdate((device) => {
-    // const dev = await device.onDevice.once()
-    device.onDevice((listen) => {console.debug(listen)})
-})

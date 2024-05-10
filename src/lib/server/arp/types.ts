@@ -1,6 +1,6 @@
 import type { Subscribable } from "atvik";
 import type { ServicePublisher } from "tinkerhub-discovery";
-import type { MAC } from "../mac/MAC";
+import type { MAC } from "$lib/server/mac/MAC";
 
 
 export interface ArpDataEntry {

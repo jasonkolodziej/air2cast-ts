@@ -8,10 +8,8 @@ import { BasicServiceDiscovery } from "tinkerhub-discovery";
 import { readFileSync, existsSync, writeFileSync } from "fs";
 import { createLogger, type Logger } from "@lvksh/logger";
 import chalk from 'chalk';
-import { type KV, type ParsedConfiguration, type Section, type Sections } from './types';
-import type { DeviceConfig } from '../libconfig.server';
-import type { Sps } from './sps';
-import { SectionsWriter, UpdateFields } from './utils';
+import type { KV, ParsedConfiguration, Section, Sections, Sps, DeviceConfig } from '$lib/server/sps/types';
+import { SectionsWriter, UpdateFields } from '$lib/server/sps/utils';
 
 
 
@@ -287,19 +285,5 @@ export class SPS extends BasicServiceDiscovery<Sps> {
         return [entry[0], new Object(Object.defineProperties(sect, Object.fromEntries(childsMap.entries())))]
         // console.log(SectionWriter(entry[0], sect))
     }))
-    }
-
-    static test() {
-
-        // const file = ParseFile('spsTemplate.conf', __dirname)
-        // const jsonObj = JSON.stringify(
-        //     file, null, 4
-        // )
-        // const cfg = toLibConfigFile(file)
-
-        const cfg = SPS.parseConfiguration();
-       const updated = UpdateFields({name: "HELLOJASON"}, cfg);
-        
-        console.log(SectionsWriter(updated));
     }
 }

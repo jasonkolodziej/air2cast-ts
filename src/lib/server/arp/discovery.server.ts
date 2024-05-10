@@ -5,7 +5,7 @@ import { type Subscribable, createEventAdapter } from 'atvik';
 import { Readable } from 'stream';
 import { BasicServiceDiscovery } from 'tinkerhub-discovery';
 import { ArpCall, 
-  type ArpDataService } from './types';
+  type ArpDataService } from '$lib/server/arp/types';
 
 // export abstract class AbstractArpService 
 // extends AbstractServicePublisher implements ArpServicePublisher {

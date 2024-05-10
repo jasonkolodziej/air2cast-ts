@@ -1,6 +1,6 @@
 import {exec, spawn} from 'child_process';
 import { isIP } from 'net';
-import { MAC } from './mac/MAC';
+import { MAC } from '$lib/server/mac/MAC';
 import { readable, readonly, writable } from 'svelte/store';
 
 // const IPv6 = v6({exact: true});
