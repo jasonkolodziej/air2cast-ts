@@ -5,7 +5,8 @@ import { ChildProcess, spawn } from "child_process";
 import { Readable } from "stream";
 import { platform } from "os";
 import { BasicServiceDiscovery, type Service } from "tinkerhub-discovery";
-import { type PathOrFileDescriptor, readdirSync, readFileSync, statSync } from "fs";
+import { type PathOrFileDescriptor, readdirSync, readFileSync,
+    statSync, existsSync, writeFileSync } from "fs";
 import path from "path";
 import { createLogger, type Logger } from "@lvksh/logger";
 import chalk from 'chalk';
