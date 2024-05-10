@@ -384,7 +384,7 @@ export class SPS extends BasicServiceDiscovery<Sps> {
     }
 
     private static preloadConfig(path?: string) {
-        return JSON.parse(readFileSync(__dirname+"/spsConfig.json", 'utf-8'))
+        return JSON.parse(readFileSync(PWD+"/spsConfig.json", 'utf-8'))
     }
 
     protected parsedConfiguration(config?: object): ParsedConfiguration {
