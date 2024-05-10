@@ -160,13 +160,10 @@ export class SPS extends BasicServiceDiscovery<Sps> {
             const pForm = platform()
             switch (pForm) {
                 // case: 'aix'
-                case 'linux':
+                case 'freebsd' || 'linux' || 'openbsd':
                     fileName = `/etc/shairport-sync${info.name}.conf`;
-                    // existsSync
                     break;
-                // case 'openbsd':
                 // case 'darwin':
-                // case 'freebsd':
                 // case 'sunos':
                 // case: 'win32':
             }
@@ -186,12 +183,10 @@ export class SPS extends BasicServiceDiscovery<Sps> {
         let fileName:string = ''
         switch (platform()) {
             // case: 'aix'
-            case 'linux':
+            // case 'darwin':
+            case 'freebsd' || 'linux' || 'openbsd':
                 fileName = `/etc/shairport-sync${config.name}.conf`;
                 break;
-            // case 'openbsd':
-            // case 'darwin':
-            // case 'freebsd':
             // case 'sunos':
             // case: 'win32':
             default:
