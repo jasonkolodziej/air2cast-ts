@@ -7,6 +7,7 @@ import { BasicServiceDiscovery } from 'tinkerhub-discovery';
 import { ArpCall, 
   type ArpDataService } from '$lib/server/arp/types';
 import { WinstonLogger, type Logger } from '../service/types';
+import { debug } from 'winston';
 
 // TODO: tests
 export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
@@ -48,7 +49,7 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
   protected override logAndEmitError(error: Error, namepaceSegment?: string, message: string = 'true'): void {
     switch(namepaceSegment) {
         case 'arp':
-          this._l.warn(error);
+          this._l.debug(error);
           break;
         default:
         if (message !== 'true') {
@@ -121,7 +122,7 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
       // * check if the key exists
       console.debug(`check if the key: ${key} exists...`)
       if (this.get(key as string) !== null) {
-        this._l.debug('emmitting an update...')
+        this._l.debug('emmitting an update...', debug);
         // * update
         // this.updateService(hardened)
       } else {

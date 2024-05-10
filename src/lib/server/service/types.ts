@@ -9,6 +9,9 @@ import Transport from "winston-transport";
 const {debug} = pkg;
 export type WinstonLogger = winston.Logger;
 export type Logger = WinstonLogger | ChaLogger<string>;
+export type Entry = winston.LogEntry;
+
+// export const NewLogEntry = (level, messasge, opts):Entry => {return {} as Entry;}
 
 /**
  * WinstonLogger constructs a Logger from pkg [`winston`](https://www.npmjs.com/package/winston#multiple-transports-of-the-same-type)
