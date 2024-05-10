@@ -6,12 +6,14 @@ import { Readable } from 'stream';
 import { BasicServiceDiscovery } from 'tinkerhub-discovery';
 import { ArpCall, 
   type ArpDataService } from '$lib/server/arp/types';
+import { WinstonLogger, type Logger } from '../service/types';
 
 // TODO: tests
 export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
   private readonly  _parent: Subscribable<Readable, any[]>;
   readonly _type: ArpCall;
   private  _proc: ChildProcess;
+  private readonly _l: Logger = WinstonLogger();
   // readonly _type: ArpCallType;
   constructor(_type:ArpCall = ArpCall.ALL, ipAddress?:string) {
     super('service:arp')
@@ -26,13 +28,14 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
           args.push(ipAddress!);
         default:
         this.logAndEmitError(
-          new Error(`Arp: ${ipAddress}, type: ${isIP(ipAddress!)} was not validated properly.`)
+          new Error(`Arp: ${ipAddress}, type: ${isIP(ipAddress!)} was not validated properly.`),
+          'arp'
         );
       }
     }
     // console.debug(args);
     this._proc = spawn('arp', args);
-    this._proc.stderr?.on('data', (err) => this.logAndEmitError(err));
+    this._proc.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'arp'));
     // this.errorEvent.subscribe((msg) => this.logAndEmitError(msg));
     this._parent = createEventAdapter(this._proc.stdout!, 'data');
     console.debug('arp type creating: ', _type.toString(), 'with ', ipAddress)
@@ -41,6 +44,18 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
       this.parse(listener);
     });
   }
+
+  protected override logAndEmitError(error: Error, namepaceSegment?: string, message: string = 'true'): void {
+    switch(namepaceSegment) {
+        case 'arp':
+          this._l.warn(error);
+          break;
+        default:
+        if (message !== 'true') {
+            super.logAndEmitError(error, message);
+        }
+    }
+}
 
   private aParse(data: Buffer | String): Array<ArpDataService> {
     const serializedData = (data instanceof Buffer) ? data.toString() : data;
@@ -106,7 +121,7 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
       // * check if the key exists
       console.debug(`check if the key: ${key} exists...`)
       if (this.get(key as string) !== null) {
-        console.debug('emmitting an update...')
+        this._l.debug('emmitting an update...')
         // * update
         // this.updateService(hardened)
       } else {

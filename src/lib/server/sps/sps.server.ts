@@ -96,15 +96,18 @@ export class SPS extends BasicServiceDiscovery<Sps> {
         // * check to see if file exists
         this.inform('Resolving Configuration')
         const [_path, configuration] = this.args(deviceInfo);
+
         this.inform('Spawning Shairport Sync');
         this._proc = spawn('shairport-sync', configuration);
         this.inform('Spawning FFMpeg');
         this._next = spawn('ffmpeg', this.ffmpegConfig);
+
         // * send data from shairport-sync to ffmpeg stdout-->stdin
         this.inform('Piping children');
         this._proc.stdout!.pipe(this._next.stdin!);
         this._proc.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'sps'));
         this._next.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'ffmpeg'));
+        
         // * get output from ffmpeg
         this._parent = createEventAdapter(this._next.stdout!, 'data');
         this._parent.subscribe((listener) => {

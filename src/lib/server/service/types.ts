@@ -4,6 +4,7 @@ import { type Subscribable, Event } from "atvik";
 import chalk from "chalk";
 import pkg from 'debug';
 import winston from "winston";
+import Transport from "winston-transport";
 // * helpful exports
 const {debug} = pkg;
 export type WinstonLogger = winston.Logger;
@@ -13,29 +14,57 @@ export type Logger = WinstonLogger | ChaLogger<string>;
  * WinstonLogger constructs a Logger from pkg [`winston`](https://www.npmjs.com/package/winston#multiple-transports-of-the-same-type)
  * @returns winston.Logger class object
  */
-export const WinstonLogger = (): WinstonLogger => winston.createLogger({
-	level: 'info',
-	format: winston.format.json(),
-	defaultMeta: { service: 'user-service' },
-	transports: [
-	  //
-	  // - Write all logs with importance level of `error` or less to `error.log`
-	  // - Write all logs with importance level of `info` or less to `combined.log`
-	  //
-	  new winston.transports.File({ filename: 'error.log', level: 'error' }),
-	  new winston.transports.File({ filename: 'combined.log' }),
-	],
-});
-
-//
-// If we're not in production then log to the `console` with the format:
-// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
-//
-// if (process.env.NODE_ENV !== 'production') {
-// 	logger.add(new winston.transports.Console({
-// 		format: winston.format.simple(),
-// 	}));
-// }
+export const WinstonLogger = (): WinstonLogger => {
+	const logger = winston.createLogger({
+		level: 'info',
+		format: winston.format.json(),
+		defaultMeta: { service: 'user-service' },
+		transports: [
+		//
+		// - Write all logs with importance level of `error` or less to `error.log`
+		// - Write all logs with importance level of `info` or less to `combined.log`
+		//
+		// new winston.transports.File({ filename: 'error.log', level: 'error' }),
+		// new winston.transports.File({ filename: 'combined.log' }),
+		// new winston.transports.Http({
+		// 	level: 'warn',
+		// 	format: winston.format.json()
+		// }),
+		// new winston.transports.Console({
+		// 	level: 'info',
+		// 	format: winston.format.combine(
+		// 	  winston.format.colorize(),
+		// 	  winston.format.simple()
+		// 	)
+		// })
+		new winston.transports.Console({
+			format: winston.format.combine(
+				winston.format.simple(), 
+				winston.format.colorize()
+			)}
+		),
+		],
+	});
+	//
+	// If we're not in production then log to the `console` with the format:
+	// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
+	if (process.env.NODE_ENV !== 'production') {
+		// //? Streaming
+		// //
+		// // Start at the end.
+		// //
+		// winston.stream({ start: -1 }).on('log', function(log) {
+		// 	console.log(log);
+		// });
+		// logger.add(new winston.transports.Console({
+		// 	format: winston.format.combine(
+		// 		winston.format.simple(), 
+		// 		winston.format.colorize()
+		// 	)}
+		// ));
+	}
+	return logger;
+};
 
 /**
  * ChalkLogger constructs a Logger from pkg [`@v3xlabs/logger`](https://github.com/v3xlabs/logger)
@@ -180,3 +209,27 @@ export abstract class AbstractDestroyable extends AbstractServicePublisher {
 		return this._destroyed;
 	}
 }
+
+//
+// Inherit from `winston-transport` so you can take advantage
+// of the base functionality and `.exceptions.handle()`.
+export class YourCustomTransport extends Transport {
+	constructor(opts: winston.transport.TransportStreamOptions | undefined) {
+	  super(opts);
+	  //
+	  // Consume any custom options here. e.g.:
+	  // - Connection information for databases
+	  // - Authentication information for APIs (e.g. loggly, papertrail,
+	  //   logentries, etc.).
+	  //
+	}
+  
+	log(info: any, callback: () => void) {
+	  setImmediate(() => {
+		this.emit('logged', info);
+	  });
+  
+	  // Perform the writing to the remote service
+	  callback();
+	}
+  };
