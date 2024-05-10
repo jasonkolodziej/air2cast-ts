@@ -10,7 +10,7 @@ import { type Logger } from "@lvksh/logger";
 import chalk from 'chalk';
 import type { KV, ParsedConfiguration, Section, Sections, Sps, DeviceConfig } from '$lib/server/sps/types';
 import { SectionsWriter, UpdateFields } from '$lib/server/sps/utils';
-import { ChalkLogger } from '$lib/server/service/type';
+import { ChalkLogger } from '$lib/server/service/types';
 
 export abstract class AbstractChildProc {}
 

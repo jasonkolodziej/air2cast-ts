@@ -5,7 +5,7 @@ import type { Service } from "tinkerhub-discovery";
 import type { MDNSService } from "tinkerhub-mdns";
 import { ArpCall } from "$lib/server/arp/types";
 import { MAC, type Mac } from "$lib/server/mac/MAC";
-import { AbstractDestroyable } from "$lib/server/service/type";
+import { AbstractDestroyable } from "$lib/server/service/types";
 import { ArpDiscovery } from "$lib/server/arp/discovery.server";
 
 interface RecordDetails {
