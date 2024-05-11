@@ -38,9 +38,6 @@ export class Device extends AbstractDestroyable implements DeviceServicePub {
         throw new Error("Method not implemented.");
     }
     readonly id: string = 'device:service';
-    Record: MDNSService;
-    MacAddress?: Mac;
-    Client: PersistentClient;
     protected readonly deviceEvent: Event<this, [DeviceServicePub]>;
     protected readonly clientEvent: Event<this, [PersistentClient]>;
     protected readonly receiverEvent: AsyncEvent<this, [ReceiverController.Receiver]>;
@@ -48,6 +45,28 @@ export class Device extends AbstractDestroyable implements DeviceServicePub {
     Receiver?: ReceiverController.Receiver;
     readonly RecordDetails: RecordDetails;
 
+    /* *
+    * Implement DeviceServicePub interface
+    */
+    Record: MDNSService;
+    MacAddress?: Mac;
+    Client: PersistentClient;
+    get Type() {
+        return this.deviceType
+    }
+    get DeviceId() {
+        return this.RecordDetails.Id;
+    }
+    get onDevice(): Subscribable<this, [DeviceServicePub]> {
+        return this.deviceEvent.subscribable;
+    }
+
+    get onClient(): Subscribable<this, [PersistentClient]> {
+        return this.clientEvent.subscribable;
+    }
+    /* *
+    *   End of Implementation
+    */
 
     constructor(service: MDNSService) {
         super('device:service')
@@ -71,7 +90,8 @@ export class Device extends AbstractDestroyable implements DeviceServicePub {
         this.deviceEvent.emit(this);
         this.obtainMacAsync();
     }
-
+    /* *
+    *   Private functions   */
     private handleRecordDetails() {
         return {
             Id: this.Record.data.get('id') as String,
@@ -79,9 +99,21 @@ export class Device extends AbstractDestroyable implements DeviceServicePub {
             FriendlyName: this.Record.data.get('fn') as String,
         } as RecordDetails;
     }
-    get Type() {
-        return this.deviceType
+
+    private monitor(event: Event<this, [MDNSService, Mac?]>) {
+        console.debug('device has listeners?', event.hasListeners);
+        // console.debug('event.emit');
+        // event.emit(this);
     }
+
+    private asyncMonitor(event: AsyncEvent<this, [Mac]>) {
+        console.debug('mac has listeners', event.hasListeners);
+        // console.debug('event.emit');
+        // event.emit(this);
+    }
+    /* *
+    *   End of private functions    */
+
     private get deviceType(): DeviceTypes {
         if (this.Record.data.get('md')?.toString().toLowerCase().includes(DeviceTypes.GROUP)) {
             return DeviceTypes.GROUP;
@@ -95,31 +127,8 @@ export class Device extends AbstractDestroyable implements DeviceServicePub {
         return DeviceTypes.UNKNOWN
     }
 
-    get DeviceId() {
-        return this.RecordDetails.Id;
-    }
-
     private get Address() {
         return this.Record.addresses.at(0)!
-    }
-
-    private monitor(event: Event<this, [MDNSService, Mac?]>) {
-        console.debug('device has listeners?', event.hasListeners);
-        // console.debug('event.emit');
-        // event.emit(this);
-    }
-    private asyncMonitor(event: AsyncEvent<this, [Mac]>) {
-        console.debug('mac has listeners', event.hasListeners);
-        // console.debug('event.emit');
-        // event.emit(this);
-    }
-
-    get onDevice(): Subscribable<this, [DeviceServicePub]> {
-        return this.deviceEvent.subscribable;
-    }
-
-    get onClient(): Subscribable<this, [PersistentClient]> {
-        return this.clientEvent.subscribable;
     }
 
     get onReceiver(): AsyncSubscribable<this, [ReceiverController.Receiver]> {
@@ -130,6 +139,18 @@ export class Device extends AbstractDestroyable implements DeviceServicePub {
         return this.macEvent.subscribable;
     }
 
+    get onAvailable() {
+		return this.onDevice;
+	}
+
+	get onUnavailable() {
+		return this.onDevice.subscribe;
+	}
+
+	get onUpdate() {
+		return this.onDevice.subscribe;
+	}
+    
     obtainMac() {
         const someHost = this.Record.addresses.at(0)?.host;
         if (someHost === undefined) {
@@ -173,18 +194,6 @@ export class Device extends AbstractDestroyable implements DeviceServicePub {
             this.deviceEvent.emit(this);
         }
     }
-
-    get onAvailable() {
-		return this.onDevice.subscribe;
-	}
-
-	get onUnavailable() {
-		return this.onDevice.subscribe;
-	}
-
-	get onUpdate() {
-		return this.onDevice.subscribe;
-	}
 }
 
 

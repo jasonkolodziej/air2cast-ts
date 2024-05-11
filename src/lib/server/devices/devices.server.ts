@@ -43,7 +43,8 @@ const mapped = discover.map({
          * 3) Return a new mapped service
          * 
          */
-        (previousMappedService as Device).withUpdate(service);
+        // (previousMappedService as Device).withUpdate(service);
+        previousMappedService.withUpdate(service);
         return previousMappedService;
       },
       destroy: mappedService => mappedService.destroy() /* perform some destruction of the mapped service */
