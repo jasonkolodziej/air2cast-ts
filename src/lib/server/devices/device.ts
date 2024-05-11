@@ -1,7 +1,7 @@
 import { PersistentClient, ReceiverController } from "@foxxmd/chromecast-client";
 import type { PersistentClientOptions } from "@foxxmd/chromecast-client/dist/cjs/src/persistentClient";
 import { Event, type Subscribable, AsyncEvent, type AsyncSubscribable, type Listener } from "atvik";
-import { type Service } from "tinkerhub-discovery";
+import { AbstractServiceDiscovery, BasicServiceDiscovery, type AdvancedMapper, type Mapper, type Service, type ServiceDiscovery, type ServicePredicate } from "tinkerhub-discovery";
 import type { MDNSService } from "tinkerhub-mdns";
 import { ArpCall, type ArpDataService, type ArpServicePublisher } from "$lib/server/arp/types";
 import { MAC, type Mac } from "$lib/server/mac/MAC";
@@ -90,6 +90,7 @@ export class Device extends AbstractDestroyableService implements DeviceService 
         );
         this.obtainMacAsync();
     }
+
     /* *
     *   Private functions   */
     private handleRecordDetails() {
@@ -139,17 +140,15 @@ export class Device extends AbstractDestroyableService implements DeviceService 
         return this.macEvent.subscribable;
     }
 
-    // get onAvailable() {
-	// 	return this.onDevice;
-	// }
-
-	// get onUnavailable() {
-	// 	return this.onDevice.subscribe;
-	// }
-
-	// get onUpdate() {
-	// 	return this.onDevice.subscribe;
-	// }
+    // protected get availableEvent() {
+    //     return this.deviceEvent
+    // }
+    // protected get unavailableEvent() {
+    //     return this.deviceEvent
+    // }
+    // protected get updateEvent() {
+    //     return this.deviceEvent
+    // }
     
     obtainMac() {
         const someHost = this.Record.addresses.at(0)?.host;

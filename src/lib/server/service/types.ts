@@ -211,6 +211,11 @@ export abstract class AbstractDestroyableService extends AbstractServicePublishe
     get destroyed() {
 		return this._destroyed;
 	}
+
+	get onDestroy() {
+		return this.destroyEvent.subscribable;
+	}
+
 }
 
 //

@@ -52,3 +52,4 @@ export const discoverDevices = ():ServiceDiscovery<Device> => {
           destroy: mappedService => mappedService.destroy() /* perform some destruction of the mapped service */
     });
 }
+
