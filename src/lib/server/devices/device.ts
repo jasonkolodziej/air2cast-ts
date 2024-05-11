@@ -37,7 +37,7 @@ export class Device extends AbstractDestroyableService implements DeviceService 
     protected beforeDestroy(): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    readonly id: string = 'device:service';
+    // readonly id: string = 'device:service';
     protected readonly deviceEvent: Event<this, [DeviceService]>;
     protected readonly clientEvent: Event<this, [PersistentClient]>;
     protected readonly receiverEvent: AsyncEvent<this, [ReceiverController.Receiver]>;
@@ -56,6 +56,9 @@ export class Device extends AbstractDestroyableService implements DeviceService 
     }
     get DeviceId() {
         return this.RecordDetails.Id;
+    }
+    get id() {
+        return this.DeviceId as string;
     }
     get onDevice(): Subscribable<this, [DeviceService]> {
         return this.deviceEvent.subscribable;
