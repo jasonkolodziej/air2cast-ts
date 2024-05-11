@@ -181,7 +181,7 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 }
 
 
-export abstract class AbstractDestroyable extends AbstractServicePublisher {
+export abstract class AbstractDestroyableService extends AbstractServicePublisher {
     /**
 	 * Get if this discovery has been destroyed.
 	 */

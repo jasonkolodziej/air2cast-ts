@@ -50,7 +50,7 @@
  */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
-export default async function sLog(statusCode: number, event) {
+export default async function scratchLog(statusCode: number, event) {
     try {
     //  const client = new Client({
     //   token: AXIOM_TOKEN,
@@ -81,7 +81,7 @@ export default async function sLog(statusCode: number, event) {
       const refererUrl = await new URL(referer);
       const refererHostname = refererUrl.hostname;
       // e.g. export const DOMAIN = 'sveltekit-auth.uv-ray.com';
-      if (refererHostname === 'localhost' || refererHostname === DOMAIN) {
+      if (refererHostname === 'localhost') { //* refererHostname === DOMAIN
        referer = refererUrl.pathname;
       }
      } else {
