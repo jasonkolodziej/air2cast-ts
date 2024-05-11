@@ -84,11 +84,12 @@ export class Device extends AbstractDestroyableService implements DeviceService 
         this.RecordDetails = this.handleRecordDetails();
         const clientOptions = this.Address as PersistentClientOptions;
         this.Client = new PersistentClient(clientOptions);
-        this.deviceEvent.emit(this);
+        // this.deviceEvent.emit(this);
         this.Client.connect().then(
             () => {
                 this.Receiver = ReceiverController.createReceiver({client: this.Client});
                 this.receiverEvent.emit(this.Receiver);
+                // this.deviceEvent.emit(this); //* good!!
             }
         );
         this.obtainMacAsync();
