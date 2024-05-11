@@ -61,7 +61,8 @@ class DeviceDiscovery extends BasicServiceDiscovery<DeviceService> implements De
         this.Client.connect().then(
             () => {
                 this.Receiver = ReceiverController.createReceiver({client: this.Client});
-                this.receiverEvent.emit(this.Receiver);
+                // this.receiverEvent.emit(this.Receiver);
+                this.updateService(this);
             }
         );
         this.obtainMacAsync();
@@ -132,11 +133,13 @@ class DeviceDiscovery extends BasicServiceDiscovery<DeviceService> implements De
         // if('_value' in someSubscribable) {
             console.debug('Mac update')
             this.MacAddress = someSubscribable;
-            this.deviceEvent.emit(this);
+            this.updateService(this);
+            // this.deviceEvent.emit(this);
         }
         if('name' in someSubscribable) { // * MDNSService
             this.Record = someSubscribable;
-            this.deviceEvent.emit(this);
+            // this.deviceEvent.emit(this);
+            this.updateService(this);
         }
     }
 
