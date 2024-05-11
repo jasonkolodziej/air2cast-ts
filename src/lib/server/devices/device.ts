@@ -3,7 +3,7 @@ import type { PersistentClientOptions } from "@foxxmd/chromecast-client/dist/cjs
 import { Event, type Subscribable, AsyncEvent, type AsyncSubscribable, type Listener } from "atvik";
 import { type Service } from "tinkerhub-discovery";
 import type { MDNSService } from "tinkerhub-mdns";
-import { ArpCall } from "$lib/server/arp/types";
+import { ArpCall, type ArpDataService, type ArpServicePublisher } from "$lib/server/arp/types";
 import { MAC, type Mac } from "$lib/server/mac/MAC";
 import { AbstractDestroyableService } from "$lib/server/service/types";
 import { ArpDiscovery } from "$lib/server/arp/discovery.server";
@@ -73,7 +73,6 @@ export class Device extends AbstractDestroyableService implements DeviceService 
         this.deviceEvent = new Event(this);
         this.clientEvent = new Event(this);
         this.receiverEvent = new AsyncEvent(this);
-        this.destroy 
         this.Record = service;
         // this.obtainMac().then(
         //     val => this.withUpdate(val)
@@ -82,13 +81,13 @@ export class Device extends AbstractDestroyableService implements DeviceService 
         this.RecordDetails = this.handleRecordDetails();
         const clientOptions = this.Address as PersistentClientOptions;
         this.Client = new PersistentClient(clientOptions);
+        this.deviceEvent.emit(this);
         this.Client.connect().then(
             () => {
                 this.Receiver = ReceiverController.createReceiver({client: this.Client});
                 this.receiverEvent.emit(this.Receiver);
             }
         );
-        this.deviceEvent.emit(this);
         this.obtainMacAsync();
     }
     /* *
@@ -140,17 +139,17 @@ export class Device extends AbstractDestroyableService implements DeviceService 
         return this.macEvent.subscribable;
     }
 
-    get onAvailable() {
-		return this.onDevice;
-	}
+    // get onAvailable() {
+	// 	return this.onDevice;
+	// }
 
-	get onUnavailable() {
-		return this.onDevice.subscribe;
-	}
+	// get onUnavailable() {
+	// 	return this.onDevice.subscribe;
+	// }
 
-	get onUpdate() {
-		return this.onDevice.subscribe;
-	}
+	// get onUpdate() {
+	// 	return this.onDevice.subscribe;
+	// }
     
     obtainMac() {
         const someHost = this.Record.addresses.at(0)?.host;
@@ -159,9 +158,10 @@ export class Device extends AbstractDestroyableService implements DeviceService 
             return;
         }
         const arp = new ArpDiscovery(ArpCall.NAMED, someHost)
-        const handle = arp.onAvailable((a) => {
-            this.withMACUpdate(a.mac_address);
-        });
+        // const handle = arp.onAvailable((a) => {
+        //     this.withMACUpdate(a.mac_address);
+        // });
+        const handle = arp.onAvailable(this.arpListener)
         // return mac;
     }
 
@@ -172,14 +172,20 @@ export class Device extends AbstractDestroyableService implements DeviceService 
             return;
         }
         const arp = new ArpDiscovery(ArpCall.NAMED, someHost);
-        const mac: MAC = (await arp.onUpdate.once().then(([id, val]) => val.mac_address))
-        this.withMACUpdate(mac);
+        await arp.onAvailable.once().then(([id]) => this.arpListener(id))
+        // const mac: MAC = (await arp.onUpdate.once().then(([id, val]) => val.mac_address))
+        // this.withMACUpdate(mac);
     }
 
     withMACUpdate:Listener<this, [MAC]> = (mac: MAC) => {
         console.debug('DeviceService.withMACUpdate');
         this.withUpdate(mac);
         // this.macEvent.emit(mac);
+    }
+
+    private arpListener:Listener<unknown, [ArpDataService]> = (data: ArpDataService) => {
+        console.debug('DeviceService.arpListener');
+        this.withMACUpdate(data.mac_address);
     }
 
     withUpdate(someSubscribable: MDNSService | MAC) {
@@ -196,5 +202,3 @@ export class Device extends AbstractDestroyableService implements DeviceService 
         }
     }
 }
-
-
