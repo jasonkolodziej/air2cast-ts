@@ -1,4 +1,3 @@
-import type { MDNSService } from 'tinkerhub-mdns';
 import type { LayoutLoad } from './$types';
 
 /**
@@ -13,7 +12,7 @@ export const load: LayoutLoad = async ({
 	route
 }) => {
 	console.debug(`${route.id}.LayoutLoad=@${params.device}`);
-	// const parentData = await parent();
+	const parentData = await parent();
 	// console.debug(`${route.id}1111111.LayoutLoad.parent`, parentData);
 	// console.debug(`${route.id}1111111.LayoutLoad.data`, data);
 	// const devices = data

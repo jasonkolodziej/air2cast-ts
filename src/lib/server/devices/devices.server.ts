@@ -80,3 +80,14 @@ export const discoverDevicesAsync = (): ServiceDiscovery<Device> => {
 			mappedService.destroy() /* perform some destruction of the mapped service */
 	});
 };
+
+export const discoverDevicesMap = (sd?: ServiceDiscovery<Device>): Promise<Map<string, Device>> => {
+	const discover = sd ?? discoverDevicesAsync();
+	return new Promise<Map<string, Device>>((resolve) => {
+		const map = new Map<string, Device>();
+		discover.onAvailable((a) => map.set(a.id, a));
+		discover.onUpdate((n, o) => map.set(o.id, n));
+		discover.onUnavailable((un) => map.delete(un.id));
+		resolve(map);
+	});
+};

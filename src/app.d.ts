@@ -17,7 +17,8 @@ declare global {
 			// user: Lucia.UserAttributes;
 			//? Refer to `$lib/server/service/scratchLogging.ts`
 			logLocals: ScratchLogging.LoggingLocals;
-			discovered: Map<string, Device>;
+			discovered: ServiceDiscovery<Device>;
+			discoveredMap: Map<string, Device>;
 		}
 		// interface PageData {}
 		// interface PageState {}

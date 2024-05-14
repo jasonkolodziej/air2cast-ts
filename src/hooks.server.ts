@@ -1,25 +1,25 @@
 // ? https://kit.svelte.dev/docs/hooks#server-hooks
-import { discoverDevices } from '$lib/server/devices/devices.server';
+import { discoverDevicesAsync } from '$lib/server/devices/devices.server';
 import scratchLog from '$lib/server/service/scratchLogging';
-import {
-	type Handle,
-	type HandleFetch,
-	type HandleServerError,
-	type RequestEvent
-} from '@sveltejs/kit';
+import { type Handle, type HandleFetch } from '@sveltejs/kit';
 
-const setupDiscovery = async (locals: App.Locals) => {
+const setupDiscovery = (locals: App.Locals) => {
 	console.debug('hooks.server.setupDiscovery');
-	if (locals.discovered === undefined) console.log('discovery undefined');
-	locals.discovered = discoverDevices();
+	if (locals.discovered == undefined) {
+		console.log('discovery undefined');
+	}
+	locals.discovered = discoverDevicesAsync();
+	// locals.discoveredMap = discoverDevicesMap(locals.discovered);
 };
 
 export const handle: Handle = async ({ event, resolve }) => {
 	console.debug('hooks.server.handle');
 	// console.debug('event.locals', event.locals)
 	//? handle discovery if this 0 request.
-	await setupDiscovery(event.locals);
-	console.log(event.locals.discovered.keys());
+	setupDiscovery(event.locals);
+	// event.locals.discovered = discoverDevicesAsync();
+	// event.locals.discoveredMap = await discoverDevicesMap(event.locals.discovered);
+	// console.log(event.locals.discoveredMap);
 
 	if (event.url.pathname.startsWith('/custom')) {
 		return new Response('custom response');

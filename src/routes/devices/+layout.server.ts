@@ -1,21 +1,26 @@
+import { discoverDevicesAsync } from '$lib/server/devices/devices.server';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({
 	// fetch,
-	locals: { discovered },
+	locals,
 	cookies,
 	params,
 	route,
 	isSubRequest,
 	isDataRequest,
-	parent, //? layout.server.ts
-	locals
+	parent //? layout.server.ts
 }) => {
 	//? LayoutData
 	console.debug(`${route.id}.LayoutServerLoad ${isDataRequest} ${isSubRequest}`);
-	const devices = Array.from(discovered.keys());
+	// discovered.onAvailable((dev) => {
+	// 	console.debug(dev);
+	// });
 	const sessionid = cookies.get('sessionid');
+	// const deviceIds = Array.from(locals.discoveredMap.keys());
+	// console.debug('ids', deviceIds);
 	const { data } = await parent();
+
 	// const devicesArray = new Array<DeviceRecord>(...(devices.DeviceRecords.values()))
 	// const strippedDevices = devicesArray.map(
 	//     (record) => {
@@ -70,10 +75,11 @@ export const load: LayoutServerLoad = async ({
 		// console.debug(strippedDevices)
 		return {
 			// data: deviceData
+			devices: locals.discovered.services
 			// data: devices.services.map(ToDeviceRecord)
 		};
 	}
 	return {
-		devices: devices
+		devices: [] // locals.discovered.services
 	};
 };
