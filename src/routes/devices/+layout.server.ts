@@ -13,7 +13,7 @@ export const load: LayoutServerLoad = async ({
 }) => {
 	//? LayoutData
 	console.debug(`${route.id}.LayoutServerLoad ${isDataRequest} ${isSubRequest}`);
-	const devices = locals.discovered.onAvailable;
+	const devices = Array.from(discovered.keys());
 	const sessionid = cookies.get('sessionid');
 	const { data } = await parent();
 	// const devicesArray = new Array<DeviceRecord>(...(devices.DeviceRecords.values()))

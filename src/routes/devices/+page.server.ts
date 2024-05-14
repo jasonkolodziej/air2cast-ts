@@ -1,3 +1,4 @@
+import type { DeviceService, RecordDetails } from '$lib/server/devices/device';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({
@@ -12,9 +13,9 @@ export const load: PageServerLoad = async ({
 	// const {
 	// 	data: { devices }
 	// } = await parent();
-	const onDe = discovered.services;
 	console.debug(`${route.id}.PageServerLoad ${isDataRequest} ${isSubRequest}`);
-	const devices = Array.from(discovered.services);
+
+	// console.debug(deviceArray);
 	// const devices = new Array<{title: string; slug: string; href: string;}>()
 	// data?.forEach((service) => {
 	//     devices.push({
@@ -27,7 +28,7 @@ export const load: PageServerLoad = async ({
 	// const devices = await layOutdata.data;
 	// console.log(layOutdata)
 	return {
-		device: route.id,
-		data: structuredClone(devices)
+		device: route.id
+		// data: structuredClone(deviceArray)
 	};
 };

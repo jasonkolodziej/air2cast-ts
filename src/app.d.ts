@@ -4,6 +4,7 @@
 
 import type { Device } from '$lib/server/devices/device';
 import type { ServiceDiscovery } from 'tinkerhub-discovery';
+import type { DeviceOb } from './hooks.client';
 
 declare global {
 	namespace App {
@@ -16,7 +17,7 @@ declare global {
 			// user: Lucia.UserAttributes;
 			//? Refer to `$lib/server/service/scratchLogging.ts`
 			logLocals: ScratchLogging.LoggingLocals;
-			discovered: ServiceDiscovery<Device>;
+			discovered: Map<string, Device>;
 		}
 		// interface PageData {}
 		// interface PageState {}

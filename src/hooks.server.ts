@@ -8,17 +8,18 @@ import {
 	type RequestEvent
 } from '@sveltejs/kit';
 
-const setupDiscovery = (event: RequestEvent): void => {
+const setupDiscovery = async (locals: App.Locals) => {
 	console.debug('hooks.server.setupDiscovery');
-	const locals = event.locals;
-	locals.discovered = locals.discovered ?? discoverDevices();
+	if (locals.discovered === undefined) console.log('discovery undefined');
+	locals.discovered = discoverDevices();
 };
 
 export const handle: Handle = async ({ event, resolve }) => {
 	console.debug('hooks.server.handle');
 	// console.debug('event.locals', event.locals)
 	//? handle discovery if this 0 request.
-	setupDiscovery(event);
+	await setupDiscovery(event.locals);
+	console.log(event.locals.discovered.keys());
 
 	if (event.url.pathname.startsWith('/custom')) {
 		return new Response('custom response');

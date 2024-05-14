@@ -28,7 +28,7 @@ export const load: LayoutLoad = async ({
 	// 		})
 	//     );
 	return {
-		devices: data.devices?.subscribe
+		devices: data.devices
 		// href: parentData.data?.at(0).href // + (params.slug !== undefined) ? '/' + params.slug : ''
 	};
 };

@@ -1,7 +1,8 @@
-import { MDNSServiceDiscovery } from 'tinkerhub-mdns';
+import { MDNSServiceDiscovery, type MDNSService } from 'tinkerhub-mdns';
 import { mdnsServiceOpt } from '$lib/server/chromecastHandler.server';
-import { Device } from '$lib/server/devices/device';
+import { Device, type DeviceService } from '$lib/server/devices/device';
 import type { ServiceDiscovery } from 'tinkerhub-discovery';
+import type { MappedDiscovery } from 'tinkerhub-discovery/dist/types/discovery/mapped-service-discovery';
 
 /*
  * ex: https://developer.spotify.com/documentation/commercial-hardware/implementation/guides/zeroconf
@@ -28,8 +29,8 @@ import type { ServiceDiscovery } from 'tinkerhub-discovery';
 
 const discover = (): MDNSServiceDiscovery => new MDNSServiceDiscovery(mdnsServiceOpt);
 
-export const discoverDevices = (): ServiceDiscovery<Device> => {
-	return discover().map({
+export const discoverDevices = (): Map<string, Device> => {
+	const d = discover().map({
 		create: (service) => {
 			return new Device(service);
 		},
@@ -46,11 +47,36 @@ export const discoverDevices = (): ServiceDiscovery<Device> => {
 			 * 3) Return a new mapped service
 			 *
 			 */
-			// (previousMappedService as Device).withUpdate(service);
-			previousMappedService.withUpdate(service);
+			(previousMappedService as Device).withUpdate(service);
+			// previousMappedService.withUpdate(service);
 			return previousMappedService;
 		},
 		destroy: (mappedService) =>
 			mappedService.destroy() /* perform some destruction of the mapped service */
+	}) as MappedDiscovery<MDNSService, Device>;
+
+	let devices = new Map<string, Device>();
+	d.onAvailable((device) => {
+		// console.log(device);
+		devices = devices.set(device.id, device);
+		// device.onDevice((service) => {
+		// 	// const something = devices.get(device.id) ?? device.RecordDetails;
+		// 	devices.set(device.id, device);
+		// });
 	});
+	d.onUpdate((device) => {
+		devices = devices.set(device.id, device);
+		// device.onDevice((service) => {
+		// 	// const something = devices.get(device.id) ?? device.RecordDetails;
+		// 	devices.set(device.id, device);
+		// });
+	});
+	// d.onUnavailable((device) => {
+	// 	devices.delete(device.id);
+	// 	// device.onDevice((service) => {
+	// 	// 	const something = devices.get(device.id) ?? device.RecordDetails;
+	// 	// 	devices.set(device.id, {...something, ...service})
+	// 	// })
+	// });
+	return devices;
 };
