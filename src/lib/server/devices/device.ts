@@ -216,6 +216,32 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 		}
 	}
 
+	withUpdateAsync(someSubscribable: MDNSService | MAC) {
+		console.debug('DeviceService.onUpdate');
+		if (someSubscribable instanceof MAC) {
+			// * Mac
+			// if('_value' in someSubscribable) {
+			console.debug('Mac update');
+			this.MacAddress = someSubscribable;
+			this.deviceEvent.emit(this);
+		}
+		if ('name' in someSubscribable) {
+			// * MDNSService
+			// * First disconnect
+			this.Client.close();
+			this.Record = someSubscribable;
+			this.Client = new PersistentClient(this.Address as PersistentClientOptions);
+			return this.Client.connect().then<Device>(() => {
+				this.Receiver = ReceiverController.createReceiver({
+					client: this.Client
+				});
+				this.receiverEvent.emit(this.Receiver);
+				this.deviceEvent.emit(this); //* good!!
+				return this;
+			});
+		}
+	}
+
 	static promise(service: MDNSService): Promise<Device> {
 		return new Promise<Device>((resolve) => {
 			const d = new Device(service);
