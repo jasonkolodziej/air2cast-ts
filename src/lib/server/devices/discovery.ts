@@ -1,75 +1,51 @@
-import { BasicServiceDiscovery } from "tinkerhub-discovery";
-import { DeviceTypes, type DeviceService, type RecordDetails } from "$lib/server/devices/device";
+import { PersistentClient } from "@foxxmd/chromecast-client";
+import type { Mac } from  "$lib/server/mac/MAC";
 import type { MDNSService } from "tinkerhub-mdns";
-import { PersistentClient, ReceiverController } from "@foxxmd/chromecast-client";
-import {AsyncEvent, Event, type Listener, type Subscribable} from "atvik";
-import type { PersistentClientOptions } from "@foxxmd/chromecast-client/dist/cjs/src/persistentClient";
-import { MAC, type Mac } from "$lib/server/mac/MAC";
+import { DeviceTypes, type RecordDetails } from "./device";
 import { ArpDiscovery } from "../arp/discovery.server";
-import { ArpCall, type ArpDataService } from "../arp/types";
+import { ArpCall } from "../arp/types";
+import type { PersistentClientOptions } from "@foxxmd/chromecast-client/dist/cjs/src/persistentClient";
+import { BasicServiceDiscovery, type Service } from "tinkerhub-discovery";
 
-class DeviceDiscovery extends BasicServiceDiscovery<DeviceService> implements DeviceService {
-    protected readonly deviceEvent: Event<this, [DeviceService]>;
-    protected readonly clientEvent: Event<this, [PersistentClient]>;
-    protected readonly receiverEvent: AsyncEvent<this, [ReceiverController.Receiver]>;
-    protected readonly macEvent: Event<this, [Mac]> = new Event(this);
-    Receiver?: ReceiverController.Receiver;
-    readonly RecordDetails: RecordDetails;
+interface DeviceData extends Service {
+    readonly Record:MDNSService;
+    readonly MacAddress?: Mac;
+    readonly DeviceId: String;
+    Client: PersistentClient;
+    Type: DeviceTypes;
+}
+
+abstract class DeviceInfo extends BasicServiceDiscovery<DeviceInfo> {
+    //* For Service interface
+    get id() {
+        return this.DeviceId as string;
+    }
     /* *
     * Implement DeviceServicePub interface
     */
-        Record: MDNSService;
-        MacAddress?: Mac;
-        Client: PersistentClient;
-        get Type() {
-            return this.deviceType;
-        }
-        get DeviceId() {
-            return this.RecordDetails.Id;
-        }
+    Record:MDNSService;
+    MacAddress?: Mac;
+    Client: PersistentClient;
 
-        get id() {
-            return this.DeviceId as string;
-        }
-
-        get onDevice(): Subscribable<this, [DeviceService]> {
-            return this.deviceEvent.subscribable;
-        }
-    
-        get onClient(): Subscribable<this, [PersistentClient]> {
-            return this.clientEvent.subscribable;
-        }
-        /* *
-        *   End of Implementation
-        */
-
-    constructor(service: MDNSService) {
-        super('device:service:discovery')
-        this.deviceEvent = new Event(this);
-        this.clientEvent = new Event(this);
-        this.receiverEvent = new AsyncEvent(this);
-        this.Record = service;
-        // this.obtainMac().then(
-        //     val => this.withUpdate(val)
-
-        // )
-        this.RecordDetails = this.handleRecordDetails();
-        const clientOptions = this.Address as PersistentClientOptions;
-        this.Client = new PersistentClient(clientOptions);
-        this.availableEvent.emit(this);
-
-        this.Client.connect().then(
-            () => {
-                this.Receiver = ReceiverController.createReceiver({client: this.Client});
-                // this.receiverEvent.emit(this.Receiver);
-                this.updateService(this);
-            }
-        );
-        this.obtainMacAsync();
+    get Type() {
+        return this.deviceType;
     }
 
-    private get Address() {
-            return this.Record.addresses.at(0)!
+    get DeviceId() {
+        return this.RecordDetails.Id;
+    }
+    /* *
+    * end of DeviceServicePub interface
+    */
+    readonly RecordDetails: RecordDetails;
+
+    constructor(service:MDNSService) {
+        super('DeviceInfo');
+        this.Record = service;
+        this.RecordDetails = this.handleRecordDetails();
+        this.Client = new PersistentClient(this.Address as PersistentClientOptions);
+        // ? handle obtaining the MacAddress
+        this.obtainMacAsync();
     }
 
     private handleRecordDetails() {
@@ -93,54 +69,21 @@ class DeviceDiscovery extends BasicServiceDiscovery<DeviceService> implements De
         return DeviceTypes.UNKNOWN
     }
 
-    private monitor(event: Event<this, [MDNSService, Mac?]>) {
-        console.debug('device has listeners?', event.hasListeners);
-        // console.debug('event.emit');
-        // event.emit(this);
-    }
+    private async obtainMacAsync() {
+        //* Get connected
+        await this.Client.connect();
 
-    private asyncMonitor(event: AsyncEvent<this, [Mac]>) {
-        console.debug('mac has listeners', event.hasListeners);
-        // console.debug('event.emit');
-        // event.emit(this);
-    }
-    async obtainMacAsync() {
         const someHost = this.Record.addresses.at(0)?.host;
         if (someHost === undefined) {
-            this.logAndEmitError(Error('host not defined'))
-            return;
+            throw new Error('host not defined')
         }
         const arp = new ArpDiscovery(ArpCall.NAMED, someHost);
-        await arp.onAvailable.once().then(([id]) => this.arpListener(id))
-        // const mac: MAC = (await arp.onUpdate.once().then(([id, val]) => val.mac_address))
+        this.MacAddress = (await arp.onUpdate.once().then(([id, val]) => val.mac_address))
         // this.withMACUpdate(mac);
     }
 
-    withMACUpdate:Listener<this, [MAC]> = (mac: MAC) => {
-        console.debug('DeviceService.withMACUpdate');
-        this.withUpdate(mac);
-        // this.macEvent.emit(mac);
+    private get Address() {
+        return this.Record.addresses.at(0)!
     }
+}
 
-    private arpListener:Listener<unknown, [ArpDataService]> = (data: ArpDataService) => {
-        console.debug('DeviceService.arpListener');
-        this.withMACUpdate(data.mac_address);
-    }
-
-    withUpdate(someSubscribable: MDNSService | MAC) {
-        console.debug('DeviceService.onUpdate');
-        if(someSubscribable instanceof MAC) { // * Mac
-        // if('_value' in someSubscribable) {
-            console.debug('Mac update')
-            this.MacAddress = someSubscribable;
-            this.updateService(this);
-            // this.deviceEvent.emit(this);
-        }
-        if('name' in someSubscribable) { // * MDNSService
-            this.Record = someSubscribable;
-            // this.deviceEvent.emit(this);
-            this.updateService(this);
-        }
-    }
-
-} /** End of DeviceDiscovery */
