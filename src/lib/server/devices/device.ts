@@ -216,7 +216,7 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 		}
 	}
 
-	withUpdateAsync(someSubscribable: MDNSService | MAC) {
+	withUpdateAsync(someSubscribable: MDNSService | MAC): Device | Promise<Device> {
 		console.debug('DeviceService.onUpdate');
 		if (someSubscribable instanceof MAC) {
 			// * Mac
@@ -240,6 +240,7 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 				return this;
 			});
 		}
+		return this;
 	}
 
 	static promise(service: MDNSService): Promise<Device> {

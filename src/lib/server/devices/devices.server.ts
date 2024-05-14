@@ -29,8 +29,8 @@ import type { MappedDiscovery } from 'tinkerhub-discovery/dist/types/discovery/m
 
 const discover = (): MDNSServiceDiscovery => new MDNSServiceDiscovery(mdnsServiceOpt);
 
-export const discoverDevices = (): Map<string, Device> => {
-	const d = discover().map({
+export const discoverDevices = (): ServiceDiscovery<Device> => {
+	return discover().map({
 		create: (service) => {
 			return new Device(service);
 		},
@@ -54,29 +54,29 @@ export const discoverDevices = (): Map<string, Device> => {
 		destroy: (mappedService) =>
 			mappedService.destroy() /* perform some destruction of the mapped service */
 	}) as MappedDiscovery<MDNSService, Device>;
+};
 
-	let devices = new Map<string, Device>();
-	d.onAvailable((device) => {
-		// console.log(device);
-		devices = devices.set(device.id, device);
-		// device.onDevice((service) => {
-		// 	// const something = devices.get(device.id) ?? device.RecordDetails;
-		// 	devices.set(device.id, device);
-		// });
+export const discoverDevicesAsync = (): ServiceDiscovery<Device> => {
+	return discover().map({
+		create: (service) => {
+			return Device.promise(service);
+		},
+		update: ({ service, previousService, previousMappedService }) => {
+			/*
+			 * `service` points to the updated service to map
+			 * `previousService` is the previous version of the service to map
+			 * `previousMappedService` is what `create` or `update` mapped to previously
+			 *
+			 * Either:
+			 *
+			 * 1) Return null/undefined to remove the service
+			 * 2) Return the previously mapped service
+			 * 3) Return a new mapped service
+			 *
+			 */
+			return (previousMappedService as Device).withUpdateAsync(service);
+		},
+		destroy: (mappedService) =>
+			mappedService.destroy() /* perform some destruction of the mapped service */
 	});
-	d.onUpdate((device) => {
-		devices = devices.set(device.id, device);
-		// device.onDevice((service) => {
-		// 	// const something = devices.get(device.id) ?? device.RecordDetails;
-		// 	devices.set(device.id, device);
-		// });
-	});
-	// d.onUnavailable((device) => {
-	// 	devices.delete(device.id);
-	// 	// device.onDevice((service) => {
-	// 	// 	const something = devices.get(device.id) ?? device.RecordDetails;
-	// 	// 	devices.set(device.id, {...something, ...service})
-	// 	// })
-	// });
-	return devices;
 };
