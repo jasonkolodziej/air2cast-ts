@@ -75,22 +75,25 @@ import type { LayoutLoad } from './$types';
 		└ +layout.svelte
 	```
 */
-const toProperCase = (str: string) => str.charAt(0).toUpperCase() + str.substring(1)
-export const load: LayoutLoad = async ({params,
+const toProperCase = (str: string) => str.charAt(0).toUpperCase() + str.substring(1);
+
+export const load: LayoutLoad = async ({
+	// params,
 	data, //? LayoutServerData from layout.server.ts
-	route}) => {
-	console.debug(`${route.id}.LayoutLoad`)
-	const sections:Array<{slug: string; title: string; text:string; href:string;}> = new Array()
-	data.data.forEach(item => 
-        sections.push(
-			{
-				slug: item, 
-				title: toProperCase(item), 
-				text: toProperCase(item), 
-				href: '/'+item, 
-			})
-        );
-	return { 
+	route
+}) => {
+	console.debug(`${route.id}.LayoutLoad`);
+
+	const sections: Array<{ slug: string; title: string; text: string; href: string }> = new Array();
+	data.data.forEach((item) =>
+		sections.push({
+			slug: item,
+			title: toProperCase(item),
+			text: toProperCase(item),
+			href: '/' + item
+		})
+	);
+	return {
 		data: sections,
 		sections: sections
 	};

@@ -15,14 +15,13 @@
 		"format": "prettier --write .",
 		"test:integration": "playwright test",
 		"test:unit": "vitest",
-		"reyarn" : "rm -rf node_modules/ && yarn"
+		"reyarn": "rm -rf node_modules/ && yarn"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.28.1",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
-		"@types/debug": "^4.1.12",
 		"@types/eslint": "^8.56.0",
 		"@typescript-eslint/eslint-plugin": "^7.0.0",
 		"@typescript-eslint/parser": "^7.0.0",
@@ -46,14 +45,14 @@
 		"vitest": "^1.5.0",
 		"tinkerhub-discovery": "^0.6.0",
 		"@foxxmd/chromecast-client": "^1.0.4"
-
 	},
 	"type": "module",
 	"packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610",
 	"dependencies": {
 		"@foxxmd/chromecast-client": "^1.0.4",
-		"@lvksh/logger": "^1.6.4",
 		"@types/uuid": "^9.0.8",
+		"@types/debug": "^4.1.12",
+		"@lvksh/logger": "^1.6.4",
 		"atvik": "^3.2.1",
 		"chalk": "^4.1.0",
 		"sprache": "^1.2.2",
