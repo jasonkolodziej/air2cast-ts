@@ -30,7 +30,9 @@ const discover = (): MDNSServiceDiscovery => new MDNSServiceDiscovery(mdnsServic
 
 export const discoverDevices = (): ServiceDiscovery<Device> => {
 	return discover().map({
-		create: (service) => new Device(service),
+		create: (service) => {
+			return new Device(service);
+		},
 		update: ({ service, previousService, previousMappedService }) => {
 			/*
 			 * `service` points to the updated service to map

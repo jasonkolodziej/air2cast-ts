@@ -1,5 +1,5 @@
 import type { MDNSService } from 'tinkerhub-mdns';
-import type { LayoutLoad } from '../$types';
+import type { LayoutLoad } from './$types';
 
 /**
  *
@@ -13,9 +13,10 @@ export const load: LayoutLoad = async ({
 	route
 }) => {
 	console.debug(`${route.id}.LayoutLoad=@${params.device}`);
-	const parentData = await parent();
-	console.debug(`${route.id}1111111.LayoutLoad.parent`, parentData);
-	// console.debug(`${route.id}.LayoutLoad.data`, data)
+	// const parentData = await parent();
+	// console.debug(`${route.id}1111111.LayoutLoad.parent`, parentData);
+	// console.debug(`${route.id}1111111.LayoutLoad.data`, data);
+	// const devices = data
 	// const sections:Array<{slug: string; title: string; text:string; href:string;}> = new Array()
 	// data.data.forEach(item =>
 	//     sections.push(
@@ -27,9 +28,7 @@ export const load: LayoutLoad = async ({
 	// 		})
 	//     );
 	return {
-		data: {
-			device: params.device
-			// href: parentData.data?.at(0).href // + (params.slug !== undefined) ? '/' + params.slug : ''
-		}
+		devices: data.devices?.subscribe
+		// href: parentData.data?.at(0).href // + (params.slug !== undefined) ? '/' + params.slug : ''
 	};
 };

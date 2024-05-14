@@ -38,7 +38,7 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 		this._proc.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'arp'));
 		// this.errorEvent.subscribe((msg) => this.logAndEmitError(msg));
 		this._parent = createEventAdapter(this._proc.stdout!, 'data');
-		console.debug('arp type creating: ', _type.toString(), 'with ', ipAddress);
+		// console.debug('arp type creating: ', _type.toString(), 'with ', ipAddress);
 		this._parent.subscribe((listener) => {
 			this.debug('listening', listener);
 			this.parse(listener);
@@ -159,9 +159,9 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 			const key = entry.ip_address;
 			const hardened = { ...entry, id: key as string };
 			// * check if the key exists
-			console.debug(`check if the key: ${key} exists...`);
+			// console.debug(`check if the key: ${key} exists...`);
 			if (this.get(key as string) !== null) {
-				this._l.debug('emmitting an update...');
+				// this._l.debug('emmitting an update...', debug);
 				// * update
 				// this.updateService(hardened)
 			} else {

@@ -1,11 +1,11 @@
-import { PWD } from "$env/static/private";
-import { arpAll } from "$lib/server/arp.server";
-import { discoverChromeCast, StartStopNotify, type DeviceServices } from "$lib/server/mdns.server";
-import { json } from "@sveltejs/kit";
-import { setResponse } from "@sveltejs/kit/node";
-import * as fs from 'fs';
-import { devices } from "playwright/test";
-import { readonly } from "svelte/store";
+// import { PWD } from '$env/static/private';
+// import { arpAll } from '$lib/server/arp.server';
+// import { discoverChromeCast, StartStopNotify, type DeviceServices } from '$lib/server/mdns.server';
+// import { json } from '@sveltejs/kit';
+// import { setResponse } from '@sveltejs/kit/node';
+// import * as fs from 'fs';
+// import { devices } from 'playwright/test';
+// import { readonly } from 'svelte/store';
 
 // export async function GET({ request, cookies, route }) {
 //     console.debug(`${route.id}.${request.method}`)
@@ -23,12 +23,11 @@ import { readonly } from "svelte/store";
 //     // })
 
 //     return new Promise<Response>((res) => {
-		
+
 // 		// readonlyDevices.subscribe((device) => {
 // 		// 	res(new Response({stream() {
-				
+
 // 		// 	},}))
 // 		// })
 // 	})
 // }
-

@@ -60,20 +60,21 @@ export default async function scratchLog(statusCode: number, event) {
 		if (statusCode >= 400) {
 			level = 'error';
 		}
-		const error = event?.locals?.error || undefined;
-		const errorId = event?.locals?.errorId || undefined;
-		const errorStackTrace = event?.locals?.errorStackTrace || undefined;
+		const llocals = event?.locals?.logLocals;
+		const error = llocals.error || undefined;
+		const errorId = llocals.errorId || undefined;
+		const errorStackTrace = llocals.errorStackTrace || undefined;
 		let urlParams = {};
 		if (event?.url?.search) {
 			urlParams = await getAllUrlParams(event?.url?.search);
 		}
 		let messageEvents = {};
-		if (event?.locals?.message) {
-			messageEvents = await parseMessage(event?.locals?.message);
+		if (llocals.message) {
+			messageEvents = await parseMessage(llocals.message);
 		}
 		let trackEvents = {};
-		if (event?.locals?.track) {
-			trackEvents = await parseTrack(event?.locals?.track);
+		if (llocals.track) {
+			trackEvents = await parseTrack(llocals.track);
 		}
 
 		let referer = event.request.headers.get('referer');
@@ -93,9 +94,9 @@ export default async function scratchLog(statusCode: number, event) {
 			method: event.request.method,
 			path: event.url.pathname,
 			status: statusCode,
-			timeInMs: Date.now() - event?.locals?.startTimer,
-			user: event?.locals?.user?.email,
-			userId: event?.locals?.user?.userId,
+			timeInMs: Date.now() - llocals.startTimer,
+			// user: event?.locals?.user?.email,
+			// userId: event?.locals?.user?.userId,
 			referer: referer,
 			error: error,
 			errorId: errorId,

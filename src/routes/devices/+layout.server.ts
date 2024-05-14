@@ -8,13 +8,14 @@ export const load: LayoutServerLoad = async ({
 	route,
 	isSubRequest,
 	isDataRequest,
-	// parent, //? layout.server.ts
+	parent, //? layout.server.ts
 	locals
 }) => {
 	//? LayoutData
 	console.debug(`${route.id}.LayoutServerLoad ${isDataRequest} ${isSubRequest}`);
 	const devices = locals.discovered.onAvailable;
 	const sessionid = cookies.get('sessionid');
+	const { data } = await parent();
 	// const devicesArray = new Array<DeviceRecord>(...(devices.DeviceRecords.values()))
 	// const strippedDevices = devicesArray.map(
 	//     (record) => {

@@ -6,11 +6,15 @@ export const load: PageServerLoad = async ({
 	isDataRequest,
 	parent, // ? LayoutServerData from layout.server.ts
 	// data, //? PageServerData from page.server.ts
-	route
+	route,
+	locals: { discovered }
 }) => {
-	const { data } = await parent();
+	// const {
+	// 	data: { devices }
+	// } = await parent();
+	const onDe = discovered.services;
 	console.debug(`${route.id}.PageServerLoad ${isDataRequest} ${isSubRequest}`);
-
+	const devices = Array.from(discovered.services);
 	// const devices = new Array<{title: string; slug: string; href: string;}>()
 	// data?.forEach((service) => {
 	//     devices.push({
@@ -19,11 +23,11 @@ export const load: PageServerLoad = async ({
 	//         slug: service.name
 	//     })
 	// })
-
+	// onDevices((device) => console.log(device));
 	// const devices = await layOutdata.data;
 	// console.log(layOutdata)
 	return {
 		device: route.id,
-		data: data
+		data: structuredClone(devices)
 	};
 };

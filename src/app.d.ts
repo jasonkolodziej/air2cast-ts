@@ -2,8 +2,8 @@
 //? import type { env } from "$env/dynamic/private";
 //? for information about these interfaces
 
-import type { Device } from "$lib/server/devices/device";
-import type { ServiceDiscovery } from "tinkerhub-discovery";
+import type { Device } from '$lib/server/devices/device';
+import type { ServiceDiscovery } from 'tinkerhub-discovery';
 
 declare global {
 	namespace App {
@@ -28,9 +28,9 @@ declare global {
 	namespace ScratchLogging {
 		type LoggingLocals = {
 			startTimer: number;
-			error: string;
+			error?: string;
 			errorId: string;
-			errorStackTrace: string;
+			errorStackTrace?: string;
 			message: unknown;
 			track: unknown;
 		};
