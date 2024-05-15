@@ -13,10 +13,10 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 	private readonly _parent: Subscribable<Readable, any[]>;
 	readonly _type: ArpCall;
 	private _proc: ChildProcess;
-	private readonly _l: Logger = WinstonLogger();
+	private readonly _l: Logger = WinstonLogger('arp:discovery');
 	// readonly _type: ArpCallType;
 	constructor(_type: ArpCall = ArpCall.ALL, ipAddress?: string) {
-		super('service:arp');
+		super('arp:discovery');
 		this._type = _type;
 
 		const args = new Array<string>();

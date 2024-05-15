@@ -102,7 +102,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	 */
 
 	constructor(service: MDNSService) {
-		super('device:service');
+		super('device');
 		this.deviceEvent = new Event(this);
 		this.clientEvent = new Event(this);
 		this.clientEvent = new Event(this);

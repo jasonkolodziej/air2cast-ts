@@ -18,9 +18,9 @@ export type Entry = winston.LogEntry;
  * WinstonLogger constructs a Logger from pkg [`winston`](https://www.npmjs.com/package/winston#multiple-transports-of-the-same-type)
  * @returns winston.Logger class object
  */
-export const WinstonLogger = (): WinstonLogger => {
+export const WinstonLogger = (serviceType?: string): WinstonLogger => {
 	const logger = winston.createLogger({
-		level: process.env.LOG_LEVEL || 'info',
+		level: process.env.LOG_LEVEL || 'debug',
 		// format: winston.format.json(),
 		format: combine(
 			colorize({ all: true }),
@@ -28,9 +28,9 @@ export const WinstonLogger = (): WinstonLogger => {
 				format: 'YYYY-MM-DD hh:mm:ss.SSS A'
 			}),
 			align(),
-			printf((info) => `[${info.timestamp}] ${info.level}: ${info.message}`)
+			printf((info) => `[${info.timestamp}] ${info.level}: ${info.service} ${info.message}`)
 		),
-		defaultMeta: { service: 'user-service' },
+		defaultMeta: { service: 'service-' + serviceType },
 		transports: [
 			//
 			// - Write all logs with importance level of `error` or less to `error.log`
@@ -161,8 +161,9 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 
 	constructor(type: string) {
 		// this.debug = debug('arp:discovery:publisher:' + type);
-		this.debug = WinstonLogger();
+		this.debug = WinstonLogger(type);
 		this.logger.debug(`type of:(${type})`, () => {});
+		// this.logger.info('HELLO');
 		this.errorEvent = new Event(this);
 	}
 
@@ -176,7 +177,8 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 	 * @param error
 	 */
 	protected logAndEmitError(error: Error, message: string = 'An error occurred:') {
-		this.logger.debug(message, () => {});
+		this.logger.error(message, error.cause);
+		// this.logger.emit('logged', message);
 		// this.debug(message, error);
 		this.errorEvent.emit(error);
 	}
@@ -202,7 +204,7 @@ export abstract class AbstractDestroyableService extends AbstractServicePublishe
 	private readonly destroyEvent: Event<this>;
 
 	constructor(type: string) {
-		super('destroyable' + type);
+		super('destroyable:' + type);
 		this._destroyed = false;
 		this.destroyEvent = new Event(this);
 	}
