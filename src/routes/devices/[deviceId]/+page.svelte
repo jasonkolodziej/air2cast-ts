@@ -29,6 +29,6 @@
 
 <Row>
 	<Column>
-		<!-- <Configuration items={} /> -->
+		<Configuration {device} />
 	</Column>
 </Row>

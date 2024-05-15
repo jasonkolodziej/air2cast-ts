@@ -113,13 +113,14 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 		const [_path, configuration] = this.args(deviceInfo);
 		this._args = configuration;
 		if (!this.isOk) {
+			this.debugMe('WARNING: NOT Okay', _path, 'Sending an unAvalable event');
 			this.unavailableEvent.emit({
 				configPath: _path,
 				content: new Buffer(''),
 				// content: listener as Buffer,
 				id: 'Sps',
 				templateConfiguration: this.parsedConfiguration(),
-				status: 'ok'
+				status: 'notSetup'
 			});
 		}
 	}
@@ -236,14 +237,16 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 		//* get the template
 		const template = SPS.parseConfiguration();
 		//* modify them for the specific device
-		const revised = UpdateFields(config, template, specificSection);
-		writeFileSync(fileName, SectionsWriter(revised), 'utf-8');
+		if (!this.destroyed) {
+			const revised = UpdateFields(config, template, specificSection);
+			writeFileSync(fileName, SectionsWriter(revised), 'utf-8');
+		}
 		this._args.push(fileName);
 		return [fileName, this._args];
 	}
 
 	private static preloadConfig(path?: string) {
-		return JSON.parse(readFileSync(PWD + '/spsConfig.json', 'utf-8'));
+		return JSON.parse(readFileSync(PWD + '/src/lib/server/sps/spsConfig.json', 'utf-8'));
 	}
 
 	protected parsedConfiguration(config?: object): ParsedConfiguration {

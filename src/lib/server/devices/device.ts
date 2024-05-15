@@ -55,7 +55,8 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	protected readonly deviceEvent: Event<this, [Device]>;
 
 	protected readonly clientEvent: Event<this, [PersistentClient]>;
-	protected readonly programEvent: AsyncEvent<this, [Sps]>;
+	// protected readonly programEvent: AsyncSubscribable<this, [Sps]>;
+	protected spsProgram?: SPS;
 	protected readonly receiverEvent: AsyncEvent<this, [ReceiverController.Receiver]>;
 	protected readonly macEvent: Event<this, [Mac]> = new Event(this);
 	Receiver?: ReceiverController.Receiver;
@@ -102,7 +103,6 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 		this.clientEvent = new Event(this);
 		this.receiverEvent = new AsyncEvent(this);
 
-		this.programEvent = new AsyncEvent(this);
 		this.Record = service;
 		// this.obtainMac().then(
 		//     val => this.withUpdate(val)
@@ -115,6 +115,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 		this.Client = new PersistentClient(clientOptions);
 		this.Client.connect()
 			.then(() => this.obtainMacAsync())
+			.then(() => this.initProgram())
 			.then(() => {
 				this.Receiver = ReceiverController.createReceiver({
 					client: this.Client
@@ -215,6 +216,27 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 		// const mac: MAC = (await arp.onUpdate.once().then(([id, val]) => val.mac_address))
 		// this.withMACUpdate(mac);
 	}
+
+	private initProgram() {
+		if (this.MacAddress !== undefined) {
+			console.debug('DeviceService.initProgram');
+			this.spsProgram = new SPS(this.ProgramConfig);
+			// this.programEvent.
+
+			this.spsProgram?.onAvailable(this.onProgramAvailable);
+			this.spsProgram?.onUnavailable((s) => this.onProgramUnavailable(s));
+		}
+	}
+
+	private onProgramAvailable: Listener<unknown, [Sps]> = (data: Sps) => {
+		console.debug('DeviceService.onProgramAvailable');
+		// this.withMACUpdate(data.mac_address);
+	};
+
+	private onProgramUnavailable: Listener<unknown, [Sps]> = (data: Sps) => {
+		console.log('DeviceService.onProgramAvailable', data);
+		// this.withMACUpdate(data.mac_address);
+	};
 
 	withMACUpdate: Listener<this, [MAC]> = (mac: MAC) => {
 		// console.debug('DeviceService.withMACUpdate');
