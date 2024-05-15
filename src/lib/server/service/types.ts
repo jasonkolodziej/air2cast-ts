@@ -22,13 +22,21 @@ export const WinstonLogger = (serviceType?: string): WinstonLogger => {
 	const logger = winston.createLogger({
 		level: process.env.LOG_LEVEL || 'debug',
 		// format: winston.format.json(),
+		// format: combine(
+		// 	colorize({ all: true }),
+		// 	timestamp({
+		// 		format: 'YYYY-MM-DD hh:mm:ss.SSS A'
+		// 	}),
+		// 	align(),
+		// 	printf((info) => `[${info.timestamp}] ${info.level}: ${info.service} ${info.message}`)
+		// ),
 		format: combine(
 			colorize({ all: true }),
 			timestamp({
 				format: 'YYYY-MM-DD hh:mm:ss.SSS A'
 			}),
 			align(),
-			printf((info) => `[${info.timestamp}] ${info.level}: ${info.service} ${info.message}`)
+			printf(AbstractDestroyableService.WinstonFormatTemplate)
 		),
 		defaultMeta: { service: 'service-' + serviceType },
 		transports: [
@@ -186,6 +194,26 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 	protected get logger() {
 		return this.debug;
 	}
+	protected debugg(...aa: string[]) {
+		return this.logger.debug(aa);
+	}
+
+	static WinstonFormatTemplate = (info: winston.Logform.TransformableInfo): string => {
+		let format = `[${info.timestamp}]:  ${info.service}
+	  [${info.level}]`;
+		// // console.debug();
+		// const a = Array.from(String(info.message));
+		// console.debug(a);
+		// if (a instanceof Array && a.length > 1) {
+		// 	for (const item of a) {
+		// 		format = `${format}
+		// 		| - ${item}`;
+		// 	}
+		// } else {
+		format += `${info.message}`;
+		// }
+		return format;
+	};
 
 	/*
 	 * Destroy this instance.

@@ -18,7 +18,6 @@ import type {
 } from '$lib/server/sps/types';
 import { SectionsWriter, UpdateFields } from '$lib/server/sps/utils';
 import { ChalkLogger } from '$lib/server/service/types';
-import { Filename } from 'carbon-components-svelte';
 
 export abstract class AbstractChildProc {}
 

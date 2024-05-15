@@ -118,7 +118,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 		this.Client = new PersistentClient(clientOptions);
 		this.Client.connect()
 			.then(() => this.obtainMacAsync())
-			// .then(() => this.initProgram())
+			.then(() => this.initProgram())
 			.then(() => {
 				this.Receiver = ReceiverController.createReceiver({
 					client: this.Client
@@ -126,7 +126,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 			})
 			.then(() => this.receiverEvent.emit(this.Receiver!))
 			.then(() => this.deviceEvent.emit(this));
-		this.logger.debug('Okay');
+		this.debugg('Okay', 'jason');
 	}
 
 	/* *
