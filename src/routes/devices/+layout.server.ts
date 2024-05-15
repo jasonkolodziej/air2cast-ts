@@ -1,5 +1,5 @@
 // import type { ReadonlyDevice } from '../../hooks.client';
-import type { Device } from '$lib/server/devices/device';
+import type { Device, DeviceService } from '$lib/server/devices/device';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = (async ({
@@ -107,7 +107,7 @@ export const load: LayoutServerLoad = (async ({
 			return {
 				device: {
 					id: maybeDevice.id,
-					data: maybeDevice.serialize() // as object
+					data: maybeDevice.serialize() as DeviceService // as object
 				}
 			};
 		}

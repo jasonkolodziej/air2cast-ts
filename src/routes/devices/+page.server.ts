@@ -1,7 +1,9 @@
 // import { serializeNonPOJOs } from '$lib/server/service/types';
 // import type { ReadonlyDevice } from '../../hooks.client';
-import type { Device } from '$lib/server/devices/device';
+import type { Device, DeviceService } from '$lib/server/devices/device';
+import { json } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { serializeNonPOJOs } from '$lib/server/service/types';
 
 export const load: PageServerLoad = (async ({
 	params,
@@ -16,12 +18,12 @@ export const load: PageServerLoad = (async ({
 	// 	data: { devices }
 	// } = await parent();
 	console.debug(`${route.id}.PageServerLoad ${isDataRequest} ${isSubRequest}`);
-	const devicesValues = new Array<Device>(...Array.from(discoveredMap.values()));
-	const clones = devicesValues.map((d) => d.serialize());
+	const devicesValues = new Array<DeviceService>(...Array.from(discoveredMap.values()));
+	const clones = devicesValues.map((d) => serializeNonPOJOs(d));
 	// const devicesClone = structuredClone(devices);
 	// return { devices: devices };
 	// console.debug(deviceArray);
-	return { devices: clones };
+	return { devices: clones as Array<DeviceService> };
 	// onDevices((device) => console.log(device));
 	// const devices = await layOutdata.data;
 	// console.log(layOutdata)

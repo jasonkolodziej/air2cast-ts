@@ -34,7 +34,7 @@ export interface DeviceService extends Service {
 	Client: PersistentClient;
 	DeviceId: String;
 	Type: DeviceTypes;
-	readonly onDevice: Subscribable<this, [Device]>;
+	readonly onDevice: Subscribable<this, [DeviceService]>;
 	readonly onClient: Subscribable<this, [PersistentClient]>;
 	readonly onReceiver: AsyncSubscribable<this, [ReceiverController.Receiver]>;
 	readonly Address: HostAndPort;
@@ -46,7 +46,7 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 		throw new Error('Method not implemented.');
 	}
 	// readonly id: string = 'device:service';
-	protected readonly deviceEvent: Event<this, [Device]>;
+	protected readonly deviceEvent: Event<this, [DeviceService]>;
 	protected readonly clientEvent: Event<this, [PersistentClient]>;
 	protected readonly receiverEvent: AsyncEvent<this, [ReceiverController.Receiver]>;
 	protected readonly macEvent: Event<this, [Mac]> = new Event(this);
@@ -68,7 +68,7 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 	get id() {
 		return this.DeviceId as string;
 	}
-	get onDevice(): Subscribable<this, [Device]> {
+	get onDevice(): Subscribable<this, [DeviceService]> {
 		return this.deviceEvent.subscribable;
 	}
 
@@ -248,10 +248,32 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 		return this;
 	}
 
+	protected reflectResolve(x: DeviceService): Device {
+		console.debug('reflectResolve');
+		// this.Client = x.Client;
+		this.Record = x.Record;
+		this.MacAddress = x.MacAddress ?? this.MacAddress;
+		// if (this.Client.connected) {
+		// 	this.Client.close();
+		// }
+		// this.Receiver?.dispose();
+		// this.Client = new PersistentClient(this.Address as PersistentClientOptions);
+		// this.Client.connect()
+		// 	// .then(() => this.obtainMacAsync())
+		// 	.then(() => {
+		// 		this.Receiver = ReceiverController.createReceiver({
+		// 			client: this.Client
+		// 		});
+		// 	})
+		// 	.then(() => this.receiverEvent.emit(this.Receiver!));
+		// .then(() => this.deviceEvent.emit(this));
+		return this;
+	}
+
 	static promise(service: MDNSService): Promise<Device> {
 		return new Promise<Device>((resolve) => {
 			const d = new Device(service);
-			d.onDevice((x) => resolve(x));
+			d.onDevice((x) => resolve(d.reflectResolve(x)));
 		});
 	}
 }
