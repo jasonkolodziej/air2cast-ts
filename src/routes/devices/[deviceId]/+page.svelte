@@ -3,7 +3,7 @@
 	import type { PageData } from './$types';
 	import DeviceDetails from '$lib/device/DeviceDetails.svelte';
 	import type { DeviceService } from '$lib/server/devices/device';
-	// import Configuration from '$lib/configuration/Configuration.svelte';
+	import Configuration from '$lib/configuration/Configuration.svelte';
 	export let data: PageData;
 	const device: DeviceService = data?.device?.data as unknown as DeviceService;
 	console.log(data);
@@ -29,6 +29,6 @@
 
 <Row>
 	<Column>
-		<!-- <Configuration items={data.devices} /> -->
+		<!-- <Configuration items={} /> -->
 	</Column>
 </Row>

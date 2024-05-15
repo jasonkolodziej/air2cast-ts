@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { DeviceService } from '$lib/server/devices/device';
 	import type { KV } from '$lib/server/sps/types';
 	import {
 		DataTable,
@@ -19,7 +20,8 @@
 		TabContent
 	} from 'carbon-components-svelte';
 	import { Save } from 'carbon-icons-svelte';
-	export let items: Array<{ title: string; description: string[]; children: Map<string, KV> }> = [];
+	export let device: DeviceService;
+	export let items: Array<{ title: string; description: string[]; children: Map<string, KV> }> = []; //Array.from(device)
 
 	let open = false;
 	let selected = 0;

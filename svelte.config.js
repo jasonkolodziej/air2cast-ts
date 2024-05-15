@@ -18,9 +18,9 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		//? https://kit.svelte.dev/docs/hooks#server-hooks
-		// files: {
-		// 	serviceWorker: 'src/service.worker.ts' // or `src/my-sw.ts`
-		// },
+		files: {
+			serviceWorker: 'src/service.worker.ts' // or `src/my-sw.ts`
+		},
 		prerender: {
 			handleMissingId: 'warn'
 			// concurrency?: number,

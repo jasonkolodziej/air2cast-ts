@@ -6,7 +6,7 @@
 	export let data: PageData;
 	const devices: Array<DeviceService> = data?.devices as Array<DeviceService>;
 	// $:({data:{promise}}=data)
-	console.debug('page data', data);
+	// console.debug('page data', data);
 </script>
 
 {#if devices.length > 0}

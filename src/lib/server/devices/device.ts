@@ -11,6 +11,8 @@ import { ArpCall, type ArpDataService } from '$lib/server/arp/types';
 import { MAC, type Mac } from '$lib/server/mac/MAC';
 import { AbstractDestroyableService, serializeNonPOJOs } from '$lib/server/service/types';
 import { ArpDiscovery } from '$lib/server/arp/discovery.server';
+import type { DeviceConfig, Sps } from '../sps/types';
+import { SPS } from '../sps/sps.server';
 // import type { ReadonlyDevice } from '../../../hooks.client';
 
 export interface RecordDetails {
@@ -30,12 +32,13 @@ export enum DeviceTypes {
 
 export interface DeviceService extends Service {
 	Record: MDNSService;
-	MacAddress?: Mac;
+	readonly MacAddress?: Mac;
 	Client: PersistentClient;
 	DeviceId: String;
 	Type: DeviceTypes;
 	readonly Address: HostAndPort;
 	readonly RecordDetails: RecordDetails;
+	readonly ProgramConfig: DeviceConfig;
 }
 
 export interface DeviceServiceSubscribable extends DeviceService {
@@ -50,7 +53,9 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	}
 	// readonly id: string = 'device:service';
 	protected readonly deviceEvent: Event<this, [Device]>;
+
 	protected readonly clientEvent: Event<this, [PersistentClient]>;
+	protected readonly programEvent: AsyncEvent<this, [Sps]>;
 	protected readonly receiverEvent: AsyncEvent<this, [ReceiverController.Receiver]>;
 	protected readonly macEvent: Event<this, [Mac]> = new Event(this);
 	Receiver?: ReceiverController.Receiver;
@@ -83,6 +88,9 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	get Address() {
 		return this.Record.addresses.at(0)!;
 	}
+	get ProgramConfig() {
+		return this.toDeviceConfig();
+	}
 	/* *
 	 *   End of Implementation
 	 */
@@ -91,7 +99,10 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 		super('device:service');
 		this.deviceEvent = new Event(this);
 		this.clientEvent = new Event(this);
+		this.clientEvent = new Event(this);
 		this.receiverEvent = new AsyncEvent(this);
+
+		this.programEvent = new AsyncEvent(this);
 		this.Record = service;
 		// this.obtainMac().then(
 		//     val => this.withUpdate(val)
@@ -135,6 +146,17 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 		console.debug('mac has listeners', event.hasListeners);
 		// console.debug('event.emit');
 		// event.emit(this);
+	}
+
+	private toDeviceConfig(): DeviceConfig {
+		return {
+			name: this.RecordDetails.FriendlyName,
+			airplay_device_id: this.MacAddress!._value.toString() as string,
+			port: 7000,
+			mdns_backend: 'avahi',
+			output_backend: 'stdout',
+			interpolation: 'auto'
+		};
 	}
 	/* *
 	 *   End of private functions    */
