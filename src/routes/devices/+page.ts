@@ -2,7 +2,7 @@
 // it so that it gets served as a static asset in prod
 
 import type { PageLoad } from './$types';
-export const prerender = 'auto';
+// export const prerender = 'auto';
 
 export const load: PageLoad = (async ({
 	parent, // ? LayoutData from layout.ts

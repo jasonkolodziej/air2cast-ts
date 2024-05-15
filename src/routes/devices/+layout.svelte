@@ -6,7 +6,7 @@
 	console.debug('layout.data', data);
 </script>
 
-{#if data.devices}
+{#if data?.devices !== undefined}
 	<Row padding>
 		<Column>
 			<h1>Devices</h1>

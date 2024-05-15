@@ -1,5 +1,6 @@
 // import type { ReadonlyDevice } from '../../hooks.client';
 import type { Device, DeviceService } from '$lib/server/devices/device';
+import { serializeNonPOJOs } from '$lib/server/service/types';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = (async ({
@@ -90,7 +91,8 @@ export const load: LayoutServerLoad = (async ({
 	// const volume = (await firstController?.receiver?.getVolume()).unwrapAndThrow()
 
 	console.debug(deviceIds);
-	const devices = new Array<Device>(...Array.from(discoveredMap.values()));
+	const devices = new Array<DeviceService>(...Array.from(discoveredMap.values()));
+	const clones = devices.map((d) => serializeNonPOJOs(d));
 	const devicesRoutes = new Array<{ title: string; device: string; href: string }>();
 	devices?.forEach((device) => {
 		devicesRoutes.push({
@@ -116,5 +118,5 @@ export const load: LayoutServerLoad = (async ({
 	// const { data } = await parent();
 	// const clones = devices.map((d) => d.serialize());
 	// const devicesClone = structuredClone(devices);
-	return { devices: devices };
+	return { devices: clones };
 }) satisfies LayoutServerLoad;
