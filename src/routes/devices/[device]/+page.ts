@@ -8,8 +8,8 @@ export const load: PageLoad = async ({
 	route
 }) => {
 	console.debug(`${route.id}=@${params.device}.PageLoad`);
-	// const layoutData = await parent();
-	// console.debug(`${route.id}.PageLoad.parentINSLUG`, layoutData)
+	const layoutData = await parent();
+	console.debug(`${route.id}.PageLoad.parentINSLUG`, layoutData);
 	// const promise = data.stream.promised as Promise<DeviceServices>
 	/// data.data.
 	return {

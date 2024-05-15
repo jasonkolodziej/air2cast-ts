@@ -10,10 +10,10 @@ export const load: PageLoad = async ({
 	data, //? PageServerData from page.server.ts
 	route
 }) => {
-	console.debug(`${route.id}.PageLoad`, data);
+	console.debug(`${route.id}.PageLoad`);
 
 	return {
-		data: data.device,
+		data: data.data,
 		route: route.id
 	};
 };

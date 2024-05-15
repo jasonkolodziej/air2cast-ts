@@ -1,5 +1,5 @@
 // ? https://kit.svelte.dev/docs/hooks#server-hooks
-import { discoverDevicesAsync } from '$lib/server/devices/devices.server';
+import { discoveredMap } from '$lib/server/devices/devices.server';
 import scratchLog from '$lib/server/service/scratchLogging';
 import { type Handle, type HandleFetch } from '@sveltejs/kit';
 
@@ -8,7 +8,8 @@ const setupDiscovery = (locals: App.Locals) => {
 	if (locals.discovered == undefined) {
 		console.log('discovery undefined');
 	}
-	locals.discovered = discoverDevicesAsync();
+	// locals.discovered = discoverDevicesAsync();
+	locals.discoveredMap = discoveredMap;
 	// locals.discoveredMap = discoverDevicesMap(locals.discovered);
 };
 

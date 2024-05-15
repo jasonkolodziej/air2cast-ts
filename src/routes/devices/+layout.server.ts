@@ -1,10 +1,11 @@
+// import type { ReadonlyDevice } from '../../hooks.client';
 import type { Device } from '$lib/server/devices/device';
-import { discoverDevicesAsync } from '$lib/server/devices/devices.server';
+import { serializeNonPOJOs } from '$lib/server/service/types';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({
 	// fetch,
-	locals: { discovered },
+	locals: { discovered, discoveredMap },
 	cookies,
 	params,
 	route,
@@ -20,22 +21,24 @@ export const load: LayoutServerLoad = async ({
 	const sessionid = cookies.get('sessionid');
 	// const deviceIds = Array.from(locals.discoveredMap.keys());
 	// console.debug('ids', deviceIds);
-	let devices = new Map<string, Device>();
-	if (discovered === undefined) {
-		console.log('LayoutLoad!!!! discovery undefined');
-	}
-	discovered.onAvailable((a) => {
-		devices = devices.set(a.id, a);
-		a.onReceiver(async (r) => {
-			const vol = (await r.getVolume()).unwrapAndThrow();
-			console.debug('VOLUME', vol);
-		});
-	});
-	discovered.onUpdate((n, o) => {
-		devices = devices.set(o.id, n);
-	});
-	const deviceIds = Array.from(devices.keys());
+	// let devices = new Map<string, Device>();
+	// if (discovered === undefined) {
+	// 	console.log('LayoutLoad!!!! discovery undefined');
+	// }
+	// discovered.onAvailable((a) => {
+	// 	devices = devices.set(a.id, a);
+	// 	// a.onReceiver(async (r) => {
+	// 	// 	const vol = (await r.getVolume()).unwrapAndThrow();
+	// 	// 	console.debug('VOLUME', vol);
+	// 	// });
+	// });
+	// discovered.onUpdate((n, o) => {
+	// 	devices = devices.set(o.id, n);
+	// });
 
+	const deviceIds = Array.from(discoveredMap.keys());
+	const deviceValues = new Array<Device>(...Array.from(discoveredMap.values()));
+	const serializedDevices = deviceValues.map((d) => d.serialize());
 	const { data } = await parent();
 
 	// const devicesArray = new Array<DeviceRecord>(...(devices.DeviceRecords.values()))
@@ -87,16 +90,17 @@ export const load: LayoutServerLoad = async ({
 	// const status =  await fristDevice?.Status();
 	// get the volume from the chromecast and unwrap the result
 	// const volume = (await firstController?.receiver?.getVolume()).unwrapAndThrow()
-	if (isDataRequest) {
-		// console.debug(fristDevice)
-		// console.debug(strippedDevices)
-		return {
-			// data: deviceData
-			device: deviceIds
-			// data: devices.services.map(ToDeviceRecord)
-		};
-	}
+
+	console.debug(deviceIds);
+	// if (isDataRequest) {
+	// 	// console.debug(strippedDevices)
+	// 	return {
+	// 		// data: deviceData
+	// 		devices: deviceValues
+	// 		// data: devices.services.map(ToDeviceRecord)
+	// 	};
+	// }
 	return {
-		device: deviceIds // locals.discovered.services
+		devices: serializedDevices // locals.discovered.services
 	};
 };

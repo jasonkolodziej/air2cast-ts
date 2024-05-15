@@ -1,28 +1,18 @@
 <script lang="ts">
 	import { Button, ExpandableTile, Tag, DataTable } from 'carbon-components-svelte';
 	import { CatalogPublish, Checkmark, Events, PlayFilled, Settings } from 'carbon-icons-svelte';
-	import type { ReceiverStatus } from '@foxxmd/chromecast-client';
-	import type { DeviceOb } from '../../routes/devices/+page.server';
-	// interface device {
-	//   deviceData: DeviceRecord;
-	//   deviceStatus: ReceiverStatus;
-	//   // route: string;
-	// }
-	export let device: DeviceOb;
-	export const deviceData: DeviceOb = device;
-	export let deviceStatus: ReceiverStatus = device?.Client;
+	// import type { ReceiverStatus } from '@foxxmd/chromecast-client';
+	import type { ReadonlyDevice } from '../../hooks.client';
+	import type { RecordDetails } from '$lib/server/devices/device';
+
+	export let device: ReadonlyDevice;
+	export const deviceData: RecordDetails = device.RecordDetails;
+	// export let deviceStatus: ReceiverStatus = device?.onReceiver(async (r: Reciever) => {
+	// 	(await r.getStatus()).unwrapAndThrow();
+	// });
 	export let routeId: string;
-	export let deviceType: string = deviceData?.Type as string;
-	let aopen = false;
-	let open = false;
-	let selected = 0;
+	export let deviceType: string = device.Type as string;
 	//? Data Table
-	let expandedRowIds = [];
-	let selectedRowIds = [];
-	let filteredRowIds = [];
-	let shorterRows = [];
-	let pageSize = 5;
-	let page = 1;
 	const headers = [
 		{ key: 'detail', value: 'Detail' },
 		{ key: 'val', value: '' }
@@ -43,7 +33,7 @@
         href={routeId+'/'+deviceData?.Id}
         on:click|preventDefault|stopPropagation={
         () => console.log("Hello world")}> -->
-		<a href={routeId + '/' + deviceData?.DeviceId}>
+		<a href={routeId + '/' + device.DeviceId}>
 			<h4>{deviceData?.FriendlyName}</h4>
 		</a>
 
@@ -51,11 +41,11 @@
 			<Tag type="green" icon={Checkmark}>Active</Tag>
 			<Tag type="high-contrast">Deactivated</Tag>
 		{/if}
-		{#await deviceStatus then result}
+		<!-- {#await deviceStatus then result}
 			{#if result.applications !== undefined}
 				<Tag type="cyan" icon={PlayFilled}>In Use</Tag>
 			{/if}
-		{/await}
+		{/await} -->
 		{#if deviceType === 'group'}
 			<Tag icon={Events}></Tag>
 		{/if}
@@ -94,8 +84,8 @@
 			size="compact"
 			{headers}
 			rows={[
-				{ id: 'a', detail: 'Address', val: deviceData?.Address.host },
-				{ id: 'b', detail: 'Port Number', val: deviceData?.Address.port },
+				{ id: 'a', detail: 'Address', val: device?.Address?.host },
+				{ id: 'b', detail: 'Port Number', val: device?.Address?.port },
 				{ id: 'c', detail: 'Manufacturer Details', val: deviceData?.ManufacturerDetails }
 				// {detail: "Address", val: deviceData?. }
 			]}

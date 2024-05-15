@@ -1,12 +1,17 @@
-import { PersistentClient, ReceiverController } from '@foxxmd/chromecast-client';
+import {
+	PersistentClient,
+	ReceiverController,
+	type ReceiverStatus
+} from '@foxxmd/chromecast-client';
 import type { PersistentClientOptions } from '@foxxmd/chromecast-client/dist/cjs/src/persistentClient';
 import { Event, type Subscribable, AsyncEvent, type AsyncSubscribable, type Listener } from 'atvik';
 import { HostAndPort, type Service } from 'tinkerhub-discovery';
 import type { MDNSService } from 'tinkerhub-mdns';
 import { ArpCall, type ArpDataService } from '$lib/server/arp/types';
 import { MAC, type Mac } from '$lib/server/mac/MAC';
-import { AbstractDestroyableService } from '$lib/server/service/types';
+import { AbstractDestroyableService, serializeNonPOJOs } from '$lib/server/service/types';
 import { ArpDiscovery } from '$lib/server/arp/discovery.server';
+// import type { ReadonlyDevice } from '../../../hooks.client';
 
 export interface RecordDetails {
 	Id: String; // m.data.get('id') as string,
@@ -31,7 +36,9 @@ export interface DeviceService extends Service {
 	Type: DeviceTypes;
 	readonly onDevice: Subscribable<this, [Device]>;
 	readonly onClient: Subscribable<this, [PersistentClient]>;
+	readonly onReceiver: AsyncSubscribable<this, [ReceiverController.Receiver]>;
 	readonly Address: HostAndPort;
+	readonly RecordDetails: RecordDetails;
 }
 
 export class Device extends AbstractDestroyableService implements DeviceService {
@@ -44,7 +51,7 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 	protected readonly receiverEvent: AsyncEvent<this, [ReceiverController.Receiver]>;
 	protected readonly macEvent: Event<this, [Mac]> = new Event(this);
 	Receiver?: ReceiverController.Receiver;
-	readonly RecordDetails: RecordDetails;
+	// readonly RecordDetails: RecordDetails;
 
 	/* *
 	 * Implement DeviceServicePub interface
@@ -63,6 +70,11 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 	}
 	get onDevice(): Subscribable<this, [Device]> {
 		return this.deviceEvent.subscribable;
+	}
+
+	get RecordDetails(): RecordDetails {
+		//return this.RecordDetails;
+		return this.handleRecordDetails();
 	}
 
 	get onClient(): Subscribable<this, [PersistentClient]> {
@@ -85,7 +97,8 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 		//     val => this.withUpdate(val)
 
 		// )
-		this.RecordDetails = this.handleRecordDetails();
+		// TODO: see if this helps with anything...
+		// this.RecordDetails = this.handleRecordDetails();
 		this.onDevice.bind(this);
 		const clientOptions = this.Address as PersistentClientOptions;
 		this.Client = new PersistentClient(clientOptions);
@@ -115,6 +128,8 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 		// console.debug('event.emit');
 		// event.emit(this);
 	}
+
+	serialize = () => serializeNonPOJOs(this as DeviceService);
 
 	private asyncMonitor(event: AsyncEvent<this, [Mac]>) {
 		console.debug('mac has listeners', event.hasListeners);
@@ -152,16 +167,6 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 	get onMac(): Subscribable<this, [Mac]> {
 		return this.macEvent.subscribable;
 	}
-
-	// protected get availableEvent() {
-	//     return this.deviceEvent
-	// }
-	// protected get unavailableEvent() {
-	//     return this.deviceEvent
-	// }
-	// protected get updateEvent() {
-	//     return this.deviceEvent
-	// }
 
 	obtainMac() {
 		const someHost = this.Record.addresses.at(0)?.host;

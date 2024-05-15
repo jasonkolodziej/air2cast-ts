@@ -1,4 +1,5 @@
-import type { DeviceService, RecordDetails } from '$lib/server/devices/device';
+// import { serializeNonPOJOs } from '$lib/server/service/types';
+// import type { ReadonlyDevice } from '../../hooks.client';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({
@@ -8,7 +9,7 @@ export const load: PageServerLoad = async ({
 	parent, // ? LayoutServerData from layout.server.ts
 	// data, //? PageServerData from page.server.ts
 	route,
-	locals: { discovered }
+	locals: { discoveredMap }
 }) => {
 	// const {
 	// 	data: { devices }
@@ -27,8 +28,11 @@ export const load: PageServerLoad = async ({
 	// onDevices((device) => console.log(device));
 	// const devices = await layOutdata.data;
 	// console.log(layOutdata)
+	const devices = Array.from(discoveredMap.values());
+	// const clones = devices.map((d) => d.serialize()!);
+	// const devicesClone = structuredClone(devices);
 	return {
-		device: route.id
-		// data: structuredClone(deviceArray)
-	};
+		device: route.id,
+		data: devices // as Dev
+	}; // satisfies PageServerLoad;
 };

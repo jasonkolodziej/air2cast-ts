@@ -1,12 +1,12 @@
-import { createLogger, type MethodList } from "@lvksh/logger";
-import type { Logger as ChaLogger } from "@lvksh/logger";
-import { type Subscribable, Event } from "atvik";
-import chalk from "chalk";
-import pkg from 'debug';
-import winston from "winston";
-import Transport from "winston-transport";
+import { createLogger, type MethodList } from '@lvksh/logger';
+import type { Logger as ChaLogger } from '@lvksh/logger';
+import { type Subscribable, Event } from 'atvik';
+import chalk from 'chalk';
+// import pkg from 'debug';
+import winston from 'winston';
+import Transport from 'winston-transport';
 // * helpful exports
-const {debug} = pkg;
+// const { debug } = pkg;
 export type WinstonLogger = winston.Logger;
 export type Logger = WinstonLogger | ChaLogger<string>;
 export type Entry = winston.LogEntry;
@@ -23,30 +23,27 @@ export const WinstonLogger = (): WinstonLogger => {
 		format: winston.format.json(),
 		defaultMeta: { service: 'user-service' },
 		transports: [
-		//
-		// - Write all logs with importance level of `error` or less to `error.log`
-		// - Write all logs with importance level of `info` or less to `combined.log`
-		//
-		// new winston.transports.File({ filename: 'error.log', level: 'error' }),
-		// new winston.transports.File({ filename: 'combined.log' }),
-		// new winston.transports.Http({
-		// 	level: 'warn',
-		// 	format: winston.format.json()
-		// }),
-		// new winston.transports.Console({
-		// 	level: 'info',
-		// 	format: winston.format.combine(
-		// 	  winston.format.colorize(),
-		// 	  winston.format.simple()
-		// 	)
-		// })
-		new winston.transports.Console({
-			format: winston.format.combine(
-				winston.format.simple(), 
-				winston.format.colorize()
-			)}
-		),
-		],
+			//
+			// - Write all logs with importance level of `error` or less to `error.log`
+			// - Write all logs with importance level of `info` or less to `combined.log`
+			//
+			// new winston.transports.File({ filename: 'error.log', level: 'error' }),
+			// new winston.transports.File({ filename: 'combined.log' }),
+			// new winston.transports.Http({
+			// 	level: 'warn',
+			// 	format: winston.format.json()
+			// }),
+			// new winston.transports.Console({
+			// 	level: 'info',
+			// 	format: winston.format.combine(
+			// 	  winston.format.colorize(),
+			// 	  winston.format.simple()
+			// 	)
+			// })
+			new winston.transports.Console({
+				format: winston.format.combine(winston.format.simple(), winston.format.colorize())
+			})
+		]
 	});
 	//
 	// If we're not in production then log to the `console` with the format:
@@ -61,7 +58,7 @@ export const WinstonLogger = (): WinstonLogger => {
 		// });
 		// logger.add(new winston.transports.Console({
 		// 	format: winston.format.combine(
-		// 		winston.format.simple(), 
+		// 		winston.format.simple(),
 		// 		winston.format.colorize()
 		// 	)}
 		// ));
@@ -73,57 +70,58 @@ export const WinstonLogger = (): WinstonLogger => {
  * ChalkLogger constructs a Logger from pkg [`@v3xlabs/logger`](https://github.com/v3xlabs/logger)
  * @returns Logger, alias ChaLogger typed object
  */
-export const ChalkLogger = <S extends string>(otherConfigs: MethodList<S>):ChaLogger<S> => createLogger(
-    {
-        ok: {
-            label: chalk.greenBright(`[OK]`),
-            newLine: '| ',
-            newLineEnd: '\\-',
-        },
-        debug: chalk.magentaBright(`[DEBUG]`),
-        info: {
-            label: chalk.cyan(`[INFO]`),
-            newLine: chalk.cyan(`⮡`),
-            newLineEnd: chalk.cyan(`⮡`),
-        },
-		...otherConfigs,
-    },
-    { 
-        padding: 'PREPEND', 
-    //     preProcessors: [
-    //         (inputs, { name, err }) => {
-    //             let index = 0;
-  
-    //             return inputs.map(it => `[Called ${name} ${++index} times] ${it}`);
-    //         }                    
-    // ]
-    },
-    console.log
-);
+export const ChalkLogger = <S extends string>(otherConfigs: MethodList<S>): ChaLogger<S> =>
+	createLogger(
+		{
+			ok: {
+				label: chalk.greenBright(`[OK]`),
+				newLine: '| ',
+				newLineEnd: '\\-'
+			},
+			debug: chalk.magentaBright(`[DEBUG]`),
+			info: {
+				label: chalk.cyan(`[INFO]`),
+				newLine: chalk.cyan(`⮡`),
+				newLineEnd: chalk.cyan(`⮡`)
+			},
+			...otherConfigs
+		},
+		{
+			padding: 'PREPEND'
+			//     preProcessors: [
+			//         (inputs, { name, err }) => {
+			//             let index = 0;
+
+			//             return inputs.map(it => `[Called ${name} ${++index} times] ${it}`);
+			//         }
+			// ]
+		},
+		console.log
+	);
 
 export const serializeNonPOJOs = (value: object | null) => {
-    return structuredClone(value)
+	return structuredClone(value);
 };
 
 interface Serializable<T> {
-    /**
-     * serialize(value: T | null): object
-    */
-    serialize?(value: T | null): T | null;
+	/**
+	 * serialize(value: T | null): object
+	 */
+	serialize?(value: T | null): T | null;
 }
 
 abstract class Serialize<T extends object> implements Serializable<object> {
-    // abstract _t(): T | null;
-    // constructor(val: T | null) {
-        
-    // }
-    serialize(value: T | null): T | null {
-        return structuredClone(value);
-    }
-    
-    static serialize<T>(value: T | null): T | null {
-        return structuredClone(value);
-    }
+	// abstract _t(): T | null;
+	// constructor(val: T | null) {
+
+	// }
+	serialize(value: T | null): T | null {
+		return structuredClone(value);
+	}
+
+	static serialize<T>(value: T | null): T | null {
+		return structuredClone(value);
+	}
 }
 
 /*
@@ -134,7 +132,7 @@ export interface ServicePublisher {
 	/*
 	 * Event emitted when an error occurs during publishing.
 	 */
-	readonly onError: Subscribable<this, [ Error ]>;
+	readonly onError: Subscribable<this, [Error]>;
 	/**
 	 * Destroy the publisher, effectively unpublishing the service.
 	 */
@@ -148,14 +146,14 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 	/*
 	 * Debugger that can be used to output debug messages for the publisher.
 	 */
-	protected readonly debug: debug.Debugger;
+	// protected readonly debug: debug.Debugger;
 	/*
 	 * Event used to emit errors for this publisher.
 	 */
-	protected readonly errorEvent: Event<this, [ Error ]>;
+	protected readonly errorEvent: Event<this, [Error]>;
 
 	constructor(type: string) {
-		this.debug = debug('arp:discovery:publisher:' + type);
+		// this.debug = debug('arp:discovery:publisher:' + type);
 
 		this.errorEvent = new Event(this);
 	}
@@ -170,19 +168,18 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 	 * @param error
 	 */
 	protected logAndEmitError(error: Error, message: string = 'An error occurred:') {
-		this.debug(message, error);
+		// this.debug(message, error);
 		this.errorEvent.emit(error);
 	}
 
-	/* 
+	/*
 	 * Destroy this instance.
 	 */
 	public abstract destroy(): Promise<void>;
 }
 
-
 export abstract class AbstractDestroyableService extends AbstractServicePublisher {
-    /**
+	/**
 	 * Get if this discovery has been destroyed.
 	 */
 	private _destroyed: boolean;
@@ -191,14 +188,14 @@ export abstract class AbstractDestroyableService extends AbstractServicePublishe
 	 */
 	private readonly destroyEvent: Event<this>;
 
-    constructor(type: string){
-        super('destroyable' + type)
-        this._destroyed = false;
+	constructor(type: string) {
+		super('destroyable' + type);
+		this._destroyed = false;
 		this.destroyEvent = new Event(this);
-    }
+	}
 
-    public destroy(): Promise<void> {
-		if(this.destroyed) return Promise.resolve();
+	public destroy(): Promise<void> {
+		if (this.destroyed) return Promise.resolve();
 
 		this._destroyed = true;
 		this.destroyEvent.emit();
@@ -206,16 +203,15 @@ export abstract class AbstractDestroyableService extends AbstractServicePublishe
 		return Promise.resolve();
 	}
 
-    protected abstract beforeDestroy(): Promise<void>;
+	protected abstract beforeDestroy(): Promise<void>;
 
-    get destroyed() {
+	get destroyed() {
 		return this._destroyed;
 	}
 
 	get onDestroy() {
 		return this.destroyEvent.subscribable;
 	}
-
 }
 
 //
@@ -223,21 +219,21 @@ export abstract class AbstractDestroyableService extends AbstractServicePublishe
 // of the base functionality and `.exceptions.handle()`.
 export class YourCustomTransport extends Transport {
 	constructor(opts: winston.transport.TransportStreamOptions | undefined) {
-	  super(opts);
-	  //
-	  // Consume any custom options here. e.g.:
-	  // - Connection information for databases
-	  // - Authentication information for APIs (e.g. loggly, papertrail,
-	  //   logentries, etc.).
-	  //
+		super(opts);
+		//
+		// Consume any custom options here. e.g.:
+		// - Connection information for databases
+		// - Authentication information for APIs (e.g. loggly, papertrail,
+		//   logentries, etc.).
+		//
 	}
-  
+
 	log(info: any, callback: () => void) {
-	  setImmediate(() => {
-		this.emit('logged', info);
-	  });
-  
-	  // Perform the writing to the remote service
-	  callback();
+		setImmediate(() => {
+			this.emit('logged', info);
+		});
+
+		// Perform the writing to the remote service
+		callback();
 	}
-  };
+}

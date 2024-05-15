@@ -3,6 +3,7 @@ import { mdnsServiceOpt } from '$lib/server/chromecastHandler.server';
 import { Device, type DeviceService } from '$lib/server/devices/device';
 import type { ServiceDiscovery } from 'tinkerhub-discovery';
 import type { MappedDiscovery } from 'tinkerhub-discovery/dist/types/discovery/mapped-service-discovery';
+// import type { ReadonlyDevice } from '../../../hooks.client';
 
 /*
  * ex: https://developer.spotify.com/documentation/commercial-hardware/implementation/guides/zeroconf
@@ -80,14 +81,25 @@ export const discoverDevicesAsync = (): ServiceDiscovery<Device> => {
 			mappedService.destroy() /* perform some destruction of the mapped service */
 	});
 };
+export const discoveredMap = new Map<string, Device>();
+const discovered = discoverDevicesAsync();
 
-export const discoverDevicesMap = (sd?: ServiceDiscovery<Device>): Promise<Map<string, Device>> => {
-	const discover = sd ?? discoverDevicesAsync();
-	return new Promise<Map<string, Device>>((resolve) => {
-		const map = new Map<string, Device>();
-		discover.onAvailable((a) => map.set(a.id, a));
-		discover.onUpdate((n, o) => map.set(o.id, n));
-		discover.onUnavailable((un) => map.delete(un.id));
-		resolve(map);
-	});
-};
+discovered.onAvailable((d) => discoveredMap.set(d.id, d));
+discovered.onUpdate((n, o) => discoveredMap.set(o.id, n));
+discovered.onUnavailable((d) => discoveredMap.delete(d.id));
+
+// export const discoverDevicesMap = async (
+// 	sd?: ServiceDiscovery<Device>
+// ): Promise<Map<string, Device>> => {
+// 	const discover = sd ?? discoverDevicesAsync();
+// 	const map = new Map<string, Device>();
+// 	return new Promise<Map<string, Device>>((resolve, reject) => {
+// 		discover.onAvailable((a) => map.set(a.id, a));
+// 		discover.onUpdate((n, o) => map.set(o.id, n));
+// 		discover.onUnavailable((un) => map.delete(un.id));
+// 		if (map.entries.length >= 1) {
+// 			return resolve(map);
+// 		}
+// 		reject('NO ENTRIES');
+// 	});
+// };
