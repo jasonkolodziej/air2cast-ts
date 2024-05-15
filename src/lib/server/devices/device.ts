@@ -118,7 +118,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 		this.Client = new PersistentClient(clientOptions);
 		this.Client.connect()
 			.then(() => this.obtainMacAsync())
-			.then(() => this.initProgram())
+			// .then(() => this.initProgram())
 			.then(() => {
 				this.Receiver = ReceiverController.createReceiver({
 					client: this.Client
@@ -126,6 +126,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 			})
 			.then(() => this.receiverEvent.emit(this.Receiver!))
 			.then(() => this.deviceEvent.emit(this));
+		this.logger.debug('Okay');
 	}
 
 	/* *
@@ -139,7 +140,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	}
 
 	private monitor(event: Event<this, [MDNSService, Mac?]>) {
-		console.debug('device has listeners?', event.hasListeners);
+		this.logger.debug('device has listeners?', event.hasListeners);
 		// console.debug('event.emit');
 		// event.emit(this);
 	}

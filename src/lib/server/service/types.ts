@@ -7,6 +7,7 @@ import winston from 'winston';
 import Transport from 'winston-transport';
 // * helpful exports
 // const { debug } = pkg;
+const { combine, timestamp, printf, colorize, align } = winston.format;
 export type WinstonLogger = winston.Logger;
 export type Logger = WinstonLogger | ChaLogger<string>;
 export type Entry = winston.LogEntry;
@@ -19,8 +20,16 @@ export type Entry = winston.LogEntry;
  */
 export const WinstonLogger = (): WinstonLogger => {
 	const logger = winston.createLogger({
-		level: 'info',
-		format: winston.format.json(),
+		level: process.env.LOG_LEVEL || 'info',
+		// format: winston.format.json(),
+		format: combine(
+			colorize({ all: true }),
+			timestamp({
+				format: 'YYYY-MM-DD hh:mm:ss.SSS A'
+			}),
+			align(),
+			printf((info) => `[${info.timestamp}] ${info.level}: ${info.message}`)
+		),
 		defaultMeta: { service: 'user-service' },
 		transports: [
 			//
@@ -40,9 +49,7 @@ export const WinstonLogger = (): WinstonLogger => {
 			// 	  winston.format.simple()
 			// 	)
 			// })
-			new winston.transports.Console({
-				format: winston.format.combine(winston.format.simple(), winston.format.colorize())
-			})
+			new winston.transports.Console()
 		]
 	});
 	//
@@ -146,7 +153,7 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 	/*
 	 * Debugger that can be used to output debug messages for the publisher.
 	 */
-	// protected readonly debug: debug.Debugger;
+	protected readonly debug: Logger;
 	/*
 	 * Event used to emit errors for this publisher.
 	 */
@@ -154,7 +161,8 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 
 	constructor(type: string) {
 		// this.debug = debug('arp:discovery:publisher:' + type);
-
+		this.debug = WinstonLogger();
+		this.logger.debug(`type of:(${type})`, () => {});
 		this.errorEvent = new Event(this);
 	}
 
@@ -168,8 +176,13 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 	 * @param error
 	 */
 	protected logAndEmitError(error: Error, message: string = 'An error occurred:') {
+		this.logger.debug(message, () => {});
 		// this.debug(message, error);
 		this.errorEvent.emit(error);
+	}
+
+	protected get logger() {
+		return this.debug;
 	}
 
 	/*
