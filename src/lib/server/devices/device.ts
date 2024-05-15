@@ -39,7 +39,7 @@ export interface DeviceService extends Service {
 }
 
 export interface DeviceServiceSubscribable extends DeviceService {
-	readonly onDevice: Subscribable<this, [DeviceService]>;
+	readonly onDevice: Subscribable<this, [Device]>;
 	readonly onClient: Subscribable<this, [PersistentClient]>;
 	readonly onReceiver: AsyncSubscribable<this, [ReceiverController.Receiver]>;
 }
@@ -49,13 +49,18 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 		throw new Error('Method not implemented.');
 	}
 	// readonly id: string = 'device:service';
-	protected readonly deviceEvent: Event<this, [DeviceService]>;
+	protected readonly deviceEvent: Event<this, [Device]>;
 	protected readonly clientEvent: Event<this, [PersistentClient]>;
 	protected readonly receiverEvent: AsyncEvent<this, [ReceiverController.Receiver]>;
 	protected readonly macEvent: Event<this, [Mac]> = new Event(this);
 	Receiver?: ReceiverController.Receiver;
 	// readonly RecordDetails: RecordDetails;
-
+	get onDevice(): Subscribable<this, [Device]> {
+		return this.deviceEvent.subscribable;
+	}
+	get onClient(): Subscribable<this, [PersistentClient]> {
+		return this.clientEvent.subscribable;
+	}
 	/* *
 	 * Implement DeviceServicePub interface
 	 */
@@ -71,17 +76,9 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	get id() {
 		return this.DeviceId.toLowerCase() as string;
 	}
-	get onDevice(): Subscribable<this, [DeviceService]> {
-		return this.deviceEvent.subscribable;
-	}
-
 	get RecordDetails(): RecordDetails {
 		//return this.RecordDetails;
 		return this.handleRecordDetails();
-	}
-
-	get onClient(): Subscribable<this, [PersistentClient]> {
-		return this.clientEvent.subscribable;
 	}
 	get Address() {
 		return this.Record.addresses.at(0)!;
@@ -260,6 +257,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 				// MacAddress: this.MacAddress,
 				RecordDetails: this.RecordDetails,
 				Address: this.Address
+				// onDevice: this.deviceEvent.subscribable
 				// Client: this.Client
 			} as DeviceService;
 			return ds;
@@ -271,6 +269,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 			MacAddress: this.MacAddress,
 			RecordDetails: this.RecordDetails,
 			Address: this.Address
+			// onDevice: this.deviceEvent.subscribable
 			// Client: this.Client
 		} as DeviceService;
 		return ds;
@@ -301,7 +300,8 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	static promise(service: MDNSService): Promise<Device> {
 		return new Promise<Device>((resolve) => {
 			const d = new Device(service);
-			d.onDevice((x) => resolve(d.reflectResolve(x)));
+			d.onDevice((x) => resolve(x));
+			// d.onDevice((x) => resolve(d.reflectResolve(x)));
 		});
 	}
 }

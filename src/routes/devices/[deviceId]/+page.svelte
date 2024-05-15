@@ -18,7 +18,6 @@
 <Row>
 	<Column>
 		<DeviceDetails {device} />
-		<!-- <DeviceDetails device={data?.device?.data} /> -->
 	</Column>
 </Row>
 
