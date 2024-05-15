@@ -116,6 +116,7 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 				(strAr) => strAr.length !== 0 && strAr.find((piece) => piece === 'Flags') === undefined
 			)
 			.flat();
+		console.log(dat);
 		let part: ArpDataService = {
 			CallType: this._type
 		};
@@ -128,9 +129,10 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 					scope: dat.pop() as String,
 					mac_address: new MAC(dat.pop() as string), //.at(2),
 					hw_type: dat.pop() as String, //?.replace('[','').replace(']',''),
-					hostname: dat.at(1) as String,
+					hostname: dat.at(0) as String,
+					// hostname: dat.at(1) as String,
 					ip_address: dat.pop() as String // .at(1)?.replace('(','').replace(')',''),
-				};
+				}; // as ArpDataService;
 				break;
 			case 'darwin':
 				part = {
@@ -141,10 +143,12 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 					mac_address: new MAC(dat.pop() as string), //.at(2),
 					hostname: dat.at(0) as String,
 					ip_address: dat.pop()!.replace('(', '').replace(')', '')
-				};
+				}; // as ArpDataService;
+				break;
 			// case 'sunos':
 			// case: 'win32':
 		}
+		console.log(part);
 		return {
 			...part,
 			id: part.hostname === '?' ? part.ip_address : part.hostname
@@ -159,7 +163,7 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 			const key = entry.ip_address;
 			const hardened = { ...entry, id: key as string };
 			// * check if the key exists
-			// console.debug(`check if the key: ${key} exists...`);
+			console.debug(`check if the key: ${key} exists...`);
 			if (this.get(key as string) !== null) {
 				// this._l.debug('emmitting an update...', debug);
 				// * update
