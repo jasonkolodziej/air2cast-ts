@@ -18,6 +18,7 @@ import type {
 } from '$lib/server/sps/types';
 import { SectionsWriter, UpdateFields } from '$lib/server/sps/utils';
 import { ChalkLogger } from '$lib/server/service/types';
+import { Filename } from 'carbon-components-svelte';
 
 export abstract class AbstractChildProc {}
 
@@ -126,6 +127,18 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 			this.unavailableEvent.emit(this.state);
 			const some = super.updateService(this.State);
 			this.debugMe('WARNING: UpdateService', _path, `${some}`);
+		} else {
+			this.state = {
+				configPath: _path,
+				content: null,
+				// content: listener as Buffer,
+				id: 'Sps',
+				templateConfiguration: this.parsedConfiguration(),
+				status: 'notStarted'
+			} as Sps;
+			this.availableEvent.emit(this.state);
+			const some = super.updateService(this.State);
+			this.ok('ok: UpdateService', _path, `${some}`);
 		}
 	}
 	public start() {
@@ -199,12 +212,19 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 				'SPS.args():'
 			);
 		} else {
-			let fileName: string = '';
+			let fileName: string = info.name
+				.split(' ')
+				.map((v, i) => {
+					return i > 0 ? v.charAt(0).toUpperCase() + v.substring(1) : v;
+				})
+				.join('');
 			const pForm = platform();
 			switch (pForm) {
 				// case: 'aix'
-				case 'freebsd' || 'linux' || 'openbsd':
-					fileName = `/etc/shairport-sync${info.name}.conf`;
+				case 'openbsd':
+				case 'freebsd':
+				case 'linux': //
+					fileName = `/etc/shairport-sync${fileName}.conf`;
 					break;
 				// case 'darwin':
 				// case 'sunos':
@@ -213,14 +233,17 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 			if (existsSync(fileName)) {
 				this.debugMe('File Found!', fileName);
 				this.isOk = true;
-				this._args.push(`/etc/shairport-sync${info.name}.conf`);
+				this._args.push(fileName);
 			} else {
 				this.debugMe(
 					'WARNING: Attempting to generate a configuration!',
 					info.name,
 					`on platform ${pForm}`
 				);
-				return this.createConfFile(info);
+				this.isOk = false;
+				return [fileName, this._args];
+				// this.destroy();
+				// return this.createConfFile(info);
 			}
 		}
 		return [this._args[1], this._args];
@@ -229,12 +252,20 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 	private createConfFile(config: DeviceConfig, specificSection?: string): [string, Array<string>] {
 		//* resolve file path based on OS
 		this.isOk = false;
-		let fileName: string = '';
+		// const name =
+		let fileName: string = config.name
+			.split(' ')
+			.map((v, i) => {
+				return i > 0 ? v.charAt(0).toUpperCase() + v.substring(1) : v;
+			})
+			.join('');
 		switch (platform()) {
 			// case: 'aix'
 			// case 'darwin':
-			case 'freebsd' || 'linux' || 'openbsd':
-				fileName = `/etc/shairport-sync${config.name}.conf`;
+			case 'openbsd':
+			case 'freebsd':
+			case 'linux': //
+				fileName = `/etc/shairport-sync${fileName}.conf`;
 				break;
 			// case 'sunos':
 			// case: 'win32':

@@ -5,7 +5,7 @@ import { MAC } from '$lib/server/mac/MAC';
 import { type Subscribable, createEventAdapter } from 'atvik';
 import { Readable } from 'stream';
 import { BasicServiceDiscovery } from 'tinkerhub-discovery';
-import { ArpCall, type ArpDataService } from '$lib/server/arp/types';
+import { ArpCall, type ArpDataEntry, type ArpDataService } from '$lib/server/arp/types';
 import { WinstonLogger, type Logger } from '../service/types';
 
 // TODO: tests
@@ -116,15 +116,14 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 				(strAr) => strAr.length !== 0 && strAr.find((piece) => piece === 'Flags') === undefined
 			)
 			.flat();
-		console.log(dat);
-		let part: ArpDataService = {
-			CallType: this._type
-		};
+		// console.log(dat, platform());
+		let part: ArpDataEntry;
 		switch (platform()) {
 			// case: 'aix'
-			case 'freebsd' || 'linux' || 'openbsd':
+			case 'openbsd':
+			case 'freebsd':
+			case 'linux': //
 				part = {
-					...part,
 					interface_name: dat.pop() as String, //.at(3),
 					scope: dat.pop() as String,
 					mac_address: new MAC(dat.pop() as string), //.at(2),
@@ -132,26 +131,26 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 					hostname: dat.at(0) as String,
 					// hostname: dat.at(1) as String,
 					ip_address: dat.pop() as String // .at(1)?.replace('(','').replace(')',''),
-				}; // as ArpDataService;
+				}; // as ArpDataEntry;
 				break;
 			case 'darwin':
 				part = {
-					...part,
 					hw_type: dat.pop() as String, //?.replace('[','').replace(']',''),
 					scope: dat.pop() as String,
 					interface_name: dat.pop() as String, //.at(3),
 					mac_address: new MAC(dat.pop() as string), //.at(2),
 					hostname: dat.at(0) as String,
 					ip_address: dat.pop()!.replace('(', '').replace(')', '')
-				}; // as ArpDataService;
+				}; // as ArpDataEntry;
 				break;
 			// case 'sunos':
 			// case: 'win32':
 		}
-		console.log(part);
+		// console.log(part);
 		return {
-			...part,
-			id: part.hostname === '?' ? part.ip_address : part.hostname
+			...part!,
+			CallType: this._type,
+			id: ((part!.hostname as string) === '?' ? part!.ip_address : part!.hostname) as string
 		} as ArpDataService;
 	}
 
@@ -163,7 +162,7 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 			const key = entry.ip_address;
 			const hardened = { ...entry, id: key as string };
 			// * check if the key exists
-			console.debug(`check if the key: ${key} exists...`);
+			// console.debug(`check if the key: ${key} exists...`);
 			if (this.get(key as string) !== null) {
 				// this._l.debug('emmitting an update...', debug);
 				// * update
@@ -172,7 +171,8 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 				// * new
 				// this.event.emit(EventCall.Available, [key, hardened])
 			}
-			this.updateService(hardened);
+			// console.debug(entry);
+			super.updateService(hardened);
 			// this.serviceMap.set(key, hardened);
 		}
 	}
