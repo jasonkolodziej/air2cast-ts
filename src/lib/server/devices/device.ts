@@ -39,6 +39,7 @@ export interface DeviceService extends Service {
 	readonly Address: HostAndPort;
 	readonly RecordDetails: RecordDetails;
 	readonly ProgramConfig: DeviceConfig;
+	readonly ProgramState: Sps;
 }
 
 export interface DeviceServiceSubscribable extends DeviceService {
@@ -57,6 +58,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	protected readonly clientEvent: Event<this, [PersistentClient]>;
 	// protected readonly programEvent: AsyncSubscribable<this, [Sps]>;
 	protected spsProgram?: SPS;
+	protected spsState: Sps;
 	protected readonly receiverEvent: AsyncEvent<this, [ReceiverController.Receiver]>;
 	protected readonly macEvent: Event<this, [Mac]> = new Event(this);
 	Receiver?: ReceiverController.Receiver;
@@ -91,6 +93,9 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	}
 	get ProgramConfig() {
 		return this.toDeviceConfig();
+	}
+	get ProgramState() {
+		return this.spsState;
 	}
 	/* *
 	 *   End of Implementation
@@ -222,8 +227,9 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 			console.debug('DeviceService.initProgram');
 			this.spsProgram = new SPS(this.ProgramConfig);
 			// this.programEvent.
-
+			this.spsState = this.spsProgram.State;
 			const un = this.spsProgram.onAvailable((s) => {
+				this.spsState = s;
 				console.debug('ONAVAIL', s);
 			});
 			this.spsProgram.onUnavailable((s) => this.onProgramUnavailable(s));
@@ -236,6 +242,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	};
 
 	private onProgramUnavailable: Listener<unknown, [Sps]> = (data: Sps) => {
+		this.spsState = data;
 		console.log('DeviceService.onProgramUnavailable', data);
 		// this.withMACUpdate(data.mac_address);
 	};
@@ -302,7 +309,9 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 				DeviceId: this.DeviceId,
 				// MacAddress: this.MacAddress,
 				RecordDetails: this.RecordDetails,
-				Address: this.Address
+				Address: this.Address,
+				ProgramConfig: this.ProgramConfig,
+				ProgramState: this.ProgramState
 				// onDevice: this.deviceEvent.subscribable
 				// Client: this.Client
 			} as DeviceService;
@@ -314,7 +323,9 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 			DeviceId: this.DeviceId,
 			MacAddress: this.MacAddress,
 			RecordDetails: this.RecordDetails,
-			Address: this.Address
+			Address: this.Address,
+			ProgramConfig: this.ProgramConfig,
+			ProgramState: this.ProgramState
 			// onDevice: this.deviceEvent.subscribable
 			// Client: this.Client
 		} as DeviceService;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { DeviceService } from '$lib/server/devices/device';
-	import type { KV } from '$lib/server/sps/types';
+	import type { KV, Sps } from '$lib/server/sps/types';
 	import {
 		DataTable,
 		Toolbar,
@@ -21,7 +21,10 @@
 	} from 'carbon-components-svelte';
 	import { Save } from 'carbon-icons-svelte';
 	export let device: DeviceService;
-	export let items: Array<{ title: string; description: string[]; children: Map<string, KV> }> = []; //Array.from(device)
+	const programState: Sps = device.ProgramState;
+
+	export let items: Array<{ title: string; description: string[]; children: Map<string, KV> }> =
+		Array.from(programState.templateConfiguration); //Array.from(device)
 
 	let open = false;
 	let selected = 0;

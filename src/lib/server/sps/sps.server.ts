@@ -117,13 +117,15 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 			this.debugMe('WARNING: NOT Okay', _path, 'Sending an unAvalable event');
 			this.state = {
 				configPath: _path,
-				content: new Buffer(''),
+				content: null,
 				// content: listener as Buffer,
 				id: 'Sps',
 				templateConfiguration: this.parsedConfiguration(),
 				status: 'notSetup'
 			} as Sps;
-			this.updateService(this.State);
+			this.unavailableEvent.emit(this.state);
+			const some = super.updateService(this.State);
+			this.debugMe('WARNING: UpdateService', _path, `${some}`);
 		}
 	}
 	public start() {
