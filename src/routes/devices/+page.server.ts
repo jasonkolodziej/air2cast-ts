@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({
 	locals: { discoveredMap }
 }) => {
 	console.log(params);
-	console.debug(`${route.id}.PageServerLoad=[DEVICES]`);
+	console.debug(`${route.id}.PageServerLoad={DEVICES}`);
 	const deviceVals = Array.from(discoveredMap.values());
 	const devices = deviceVals.map((d) => d.serialize());
 	// * specific device

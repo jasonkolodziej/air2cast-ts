@@ -1,5 +1,4 @@
 // ? https://kit.svelte.dev/docs/hooks#server-hooks
-import type { DeviceService } from '$lib/server/devices/device';
 import { discoveredMap } from '$lib/server/devices/devices.server';
 import scratchLog from '$lib/server/service/scratchLogging';
 import { type Handle, type HandleFetch } from '@sveltejs/kit';
@@ -38,7 +37,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	if (event.url.pathname.startsWith('/devices') && event.isDataRequest) {
-		console.debug(event);
+		// console.debug(event);
 	}
 	console.debug('hooks.server.handle resolving event');
 	const response = await resolve(event);
