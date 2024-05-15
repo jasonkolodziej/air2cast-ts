@@ -1,4 +1,5 @@
 // ? https://kit.svelte.dev/docs/hooks#server-hooks
+import type { DeviceService } from '$lib/server/devices/device';
 import { discoveredMap } from '$lib/server/devices/devices.server';
 import scratchLog from '$lib/server/service/scratchLogging';
 import { type Handle, type HandleFetch } from '@sveltejs/kit';
@@ -22,12 +23,22 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// event.locals.discoveredMap = await discoverDevicesMap(event.locals.discovered);
 	// console.log(event.locals.discoveredMap);
 
-	if (event.url.pathname.startsWith('/custom')) {
-		return new Response('custom response');
+	if (event.url.pathname.startsWith('/api/devices')) {
+		console.debug('hooks.server.handle.API.DEVICES');
+		// return new Response('custom response');
+		const deviceEntries = Array.from(event.locals.discoveredMap.entries());
+		const serialized = deviceEntries.map(([id, device]) => {
+			return device.serialize();
+		});
+		return new Response(JSON.stringify(serialized), {
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 	}
 
 	if (event.url.pathname.startsWith('/devices') && event.isDataRequest) {
-		// console.debug(event);
+		console.debug(event);
 	}
 	console.debug('hooks.server.handle resolving event');
 	const response = await resolve(event);

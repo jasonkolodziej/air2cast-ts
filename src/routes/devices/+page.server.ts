@@ -1,42 +1,29 @@
-// import { serializeNonPOJOs } from '$lib/server/service/types';
-// import type { ReadonlyDevice } from '../../hooks.client';
-import type { Device, DeviceService } from '$lib/server/devices/device';
 import type { PageServerLoad } from './$types';
-import { serializeNonPOJOs } from '$lib/server/service/types';
 
-export const load: PageServerLoad = (async ({
+export const load: PageServerLoad = async ({
+	fetch,
 	params,
-	isSubRequest,
-	isDataRequest,
-	parent, // ? LayoutServerData from layout.server.ts
-	// data, //? PageServerData from page.server.ts
 	route,
+	parent,
 	locals: { discoveredMap }
 }) => {
-	// const {
-	// 	data: { devices }
-	// } = await parent();
-	console.debug(`${route.id}.PageServerLoadparams} ${isDataRequest} ${isSubRequest}`);
-	const devicesValues = new Array<DeviceService>(...Array.from(discoveredMap.values()));
-	const clones = devicesValues.map((d) => serializeNonPOJOs(d));
-	// const devicesClone = structuredClone(devices);
-	// return { devices: devices };
-	// console.debug(deviceArray);
-	return { devices: clones as Array<DeviceService> };
-	// onDevices((device) => console.log(device));
-	// const devices = await layOutdata.data;
-	// console.log(layOutdata)
-
-	// if ((params?. !== undefined) {
-	// 	// * see if the deviceId provided in params is in map?
-	// 	const maybeDevice = discoveredMap.get(device as string);
-	// 	if (maybeDevice !== undefined) {
+	console.log(params);
+	console.debug(`${route.id}.PageServerLoad=[DEVICES]`);
+	const deviceVals = Array.from(discoveredMap.values());
+	const devices = deviceVals.map((d) => d.serialize());
+	// * specific device
+	// if (deviceId !== undefined) {
+	// 	const found = discoveredMap.get(deviceId);
+	// 	if (found !== undefined) {
 	// 		return {
 	// 			device: {
-	// 				id: maybeDevice.id,
-	// 				data: maybeDevice.serialize() // as object
+	// 				id: found.id,
+	// 				data: found.serialize()
 	// 			}
 	// 		};
 	// 	}
 	// }
-}) satisfies PageServerLoad;
+	return {
+		devices: devices
+	};
+}; // ) satisfies PageLoad;

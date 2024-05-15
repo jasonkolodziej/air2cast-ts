@@ -4,7 +4,7 @@ import { readdirSync } from 'fs';
 // import { dataArray } from "$lib/server/libconfig.server";
 
 export const load: LayoutServerLoad = (async ({ cookies, isDataRequest, route }) => {
-	console.debug(`${route.id}.LayoutServerLoad ${isDataRequest}`);
+	console.debug(`MAIN.LayoutServerLoad ${isDataRequest}`);
 	// console.debug('event.locals', locals)
 	//* Cookies
 	//* determine the routes of the App
@@ -15,8 +15,6 @@ export const load: LayoutServerLoad = (async ({ cookies, isDataRequest, route })
 	// console.info(routes)
 	// const readableStream = createReadableStream(PWD+"/src/lib/server/spsConf.json")
 	return {
-		data: {
-			routes: routes
-		}
+		calculatedRoutes: routes
 	};
 }) satisfies LayoutServerLoad;

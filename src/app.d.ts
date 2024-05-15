@@ -4,7 +4,7 @@
 
 import type { Device, DeviceService } from '$lib/server/devices/device';
 import type { ServiceDiscovery } from 'tinkerhub-discovery';
-import type { DeviceOb } from './hooks.client';
+// import type { DeviceOb } from './hooks.client';
 
 declare global {
 	namespace App {

@@ -2,6 +2,7 @@
 	import { Button, ExpandableTile, Tag, DataTable } from 'carbon-components-svelte';
 	import { CatalogPublish, Checkmark, Events, PlayFilled, Settings } from 'carbon-icons-svelte';
 	import type { RecordDetails, DeviceService } from '$lib/server/devices/device';
+	import { goto } from '$app/navigation';
 
 	export let device: DeviceService | undefined;
 	export const deviceData: DeviceService = device!;
@@ -9,7 +10,7 @@
 	// export let deviceStatus: ReceiverStatus = device?.onReceiver(async (r: Reciever) => {
 	// 	(await r.getStatus()).unwrapAndThrow();
 	// });
-	export const routeId: string = '/device';
+	export const routeId: string = '/devices';
 	export let deviceType: string = deviceData?.Type as string;
 	//? Data Table
 	const headers = [
@@ -56,7 +57,9 @@
 			tooltipAlignment="start"
 			tooltipPosition="top"
 			size="small"
-			href={routeId + '/' + deviceData?.id + '#configure'}
+			on:click={() => {
+				goto(routeId + '/' + deviceData?.id + '#configure');
+			}}
 		></Button>
 		<Button
 			kind="ghost"

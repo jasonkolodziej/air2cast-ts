@@ -55,11 +55,12 @@
 		"@lvksh/logger": "^1.6.4",
 		"@types/uuid": "^9.0.8",
 		"atvik": "^3.2.1",
+		"carbon-components-svelte": "^0.85.0",
 		"chalk": "^4.1.0",
 		"sprache": "^1.2.2",
 		"tinkerhub-discovery": "^0.6.0",
 		"tinkerhub-mdns": "^0.5.1",
-		"winston": "^3.13.0",
-		"carbon-components-svelte": "^0.85.0"
+		"uuid": "^9.0.1",
+		"winston": "^3.13.0"
 	}
 }

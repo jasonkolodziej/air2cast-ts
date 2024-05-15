@@ -78,15 +78,15 @@ import type { LayoutLoad } from './$types';
 const toProperCase = (str: string) => str.charAt(0).toUpperCase() + str.substring(1);
 
 export const load: LayoutLoad = (async ({
-	// params,
+	params,
 	parent,
 	data, //? LayoutServerData from layout.server.ts
 	route
 }) => {
-	console.debug(`${route.id}.LayoutLoadJASSSSSON`);
-	const { routes } = data.data;
+	console.debug(`MAIN.LayoutLoad`);
+	const { calculatedRoutes } = data;
 	const sections: Array<{ slug: string; title: string; text: string; href: string }> = new Array();
-	(routes as string[]).forEach((item) =>
+	calculatedRoutes.forEach((item) =>
 		sections.push({
 			slug: item,
 			title: toProperCase(item),
@@ -95,7 +95,7 @@ export const load: LayoutLoad = (async ({
 		})
 	);
 	return {
-		data: sections,
+		// data: sections,
 		sections: sections
 		// devices: []
 	};

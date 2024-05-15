@@ -6,22 +6,14 @@ export const prerender = 'auto';
 // export const prerender = true;
 
 export const load: PageLoad = (async ({
-	data: {
-		data: { routes }
-	}, //? PageServerData from page.server.ts
+	params,
+	data, //? PageServerData from page.server.ts
 	route,
 	parent
 }) => {
-	console.debug(`${route.id}.PageLoad`);
-	// const layoutData = await parent();
-	// console.debug('pageData', pageData)
-	// console.debug('layoutData', layoutData)
+	console.debug(`MAIN.PageLoad`);
 	return {
-		sections: [
-			{ slug: 'profile', title: 'Profile' },
-			{ slug: 'notifications', title: 'Notifications' }
-		],
-		data: routes
+		data
 	};
 }) satisfies PageLoad;
 

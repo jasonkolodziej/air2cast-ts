@@ -1,15 +1,15 @@
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import preprocess from 'svelte-preprocess';
-import { optimizeImports } from "carbon-preprocess-svelte";
+import { optimizeImports } from 'carbon-preprocess-svelte';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	//? Consult https://github.com/sveltejs/svelte-preprocess
 	//? for more information about preprocessors
 	preprocess: [
-		// vitePreprocess(), 
-		preprocess(), 
+		// vitePreprocess(),
+		preprocess(),
 		optimizeImports()
 	],
 	//? adapter-auto only supports some environments, see https://kit.svelte.dev/docs/adapter-auto for a list.
@@ -18,13 +18,19 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		//? https://kit.svelte.dev/docs/hooks#server-hooks
-		files: {
-			serviceWorker: 'src/service.worker.ts', // or `src/my-sw.ts`
-		},
+		// files: {
+		// 	serviceWorker: 'src/service.worker.ts' // or `src/my-sw.ts`
+		// },
+		prerender: {
+			handleMissingId: 'warn'
+			// concurrency?: number,
+			// entries: // Array<{param: string}>
+			// crawl: true //? boolean
+		}
 		// env: {
 		// 	// dir?: string;
 		// },
-	},
+	}
 };
 
 export default config;

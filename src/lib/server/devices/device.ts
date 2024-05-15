@@ -34,14 +34,17 @@ export interface DeviceService extends Service {
 	Client: PersistentClient;
 	DeviceId: String;
 	Type: DeviceTypes;
-	readonly onDevice: Subscribable<this, [DeviceService]>;
-	readonly onClient: Subscribable<this, [PersistentClient]>;
-	readonly onReceiver: AsyncSubscribable<this, [ReceiverController.Receiver]>;
 	readonly Address: HostAndPort;
 	readonly RecordDetails: RecordDetails;
 }
 
-export class Device extends AbstractDestroyableService implements DeviceService {
+export interface DeviceServiceSubscribable extends DeviceService {
+	readonly onDevice: Subscribable<this, [DeviceService]>;
+	readonly onClient: Subscribable<this, [PersistentClient]>;
+	readonly onReceiver: AsyncSubscribable<this, [ReceiverController.Receiver]>;
+}
+
+export class Device extends AbstractDestroyableService implements DeviceServiceSubscribable {
 	protected beforeDestroy(): Promise<void> {
 		throw new Error('Method not implemented.');
 	}
@@ -66,7 +69,7 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 		return this.RecordDetails.Id;
 	}
 	get id() {
-		return this.DeviceId as string;
+		return this.DeviceId.toLowerCase() as string;
 	}
 	get onDevice(): Subscribable<this, [DeviceService]> {
 		return this.deviceEvent.subscribable;
@@ -129,7 +132,7 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 		// event.emit(this);
 	}
 
-	serialize = () => serializeNonPOJOs(this);
+	serialize = () => serializeNonPOJOs(this.asDeviceService);
 
 	private asyncMonitor(event: AsyncEvent<this, [Mac]>) {
 		console.debug('mac has listeners', event.hasListeners);
@@ -246,6 +249,31 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 			});
 		}
 		return this;
+	}
+
+	get asDeviceService() {
+		if (this.MacAddress === undefined) {
+			const ds = {
+				Type: this.Type,
+				id: this.id,
+				DeviceId: this.DeviceId,
+				// MacAddress: this.MacAddress,
+				RecordDetails: this.RecordDetails,
+				Address: this.Address
+				// Client: this.Client
+			} as DeviceService;
+			return ds;
+		}
+		const ds = {
+			Type: this.Type,
+			id: this.id,
+			DeviceId: this.DeviceId,
+			MacAddress: this.MacAddress,
+			RecordDetails: this.RecordDetails,
+			Address: this.Address
+			// Client: this.Client
+		} as DeviceService;
+		return ds;
 	}
 
 	protected reflectResolve(x: DeviceService): Device {

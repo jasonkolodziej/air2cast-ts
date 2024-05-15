@@ -2,8 +2,10 @@
 	import { Column, Row } from 'carbon-components-svelte';
 	import type { PageData } from './$types';
 	import DeviceDetails from '$lib/device/DeviceDetails.svelte';
+	import type { DeviceService } from '$lib/server/devices/device';
 	// import Configuration from '$lib/configuration/Configuration.svelte';
 	export let data: PageData;
+	const device: DeviceService = data?.device?.data as unknown as DeviceService;
 	console.log(data);
 </script>
 
@@ -15,7 +17,8 @@
 
 <Row>
 	<Column>
-		<DeviceDetails device={data?.device?.data} />
+		<DeviceDetails {device} />
+		<!-- <DeviceDetails device={data?.device?.data} /> -->
 	</Column>
 </Row>
 

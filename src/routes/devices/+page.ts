@@ -1,19 +1,13 @@
-// since there's no dynamic data here, we can prerender
-// it so that it gets served as a static asset in prod
-
 import type { PageLoad } from './$types';
-// export const prerender = 'auto';
 
-export const load: PageLoad = (async ({
-	parent, // ? LayoutData from layout.ts
+export const load: PageLoad = async ({
+	params,
 	data, //? PageServerData from page.server.ts
-	route
+	route,
+	parent
 }) => {
-	console.debug(`${route.id}.PageLoad`);
-	// const layoutData = await parent();
-	return {
-		// devices: data,
-		devices: data.devices
-		// route: route.id
-	};
-}) satisfies PageLoad;
+	console.debug(`${route.id}.PageLoad=[DEVICES]`);
+	return data;
+};
+
+export const prerender = 'auto';
