@@ -113,8 +113,6 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 		//     val => this.withUpdate(val)
 
 		// )
-		// TODO: see if this helps with anything...
-		// this.RecordDetails = this.handleRecordDetails();
 		this.onDevice.bind(this);
 		const clientOptions = this.Address as PersistentClientOptions;
 		this.Client = new PersistentClient(clientOptions);
