@@ -126,7 +126,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 			})
 			.then(() => this.receiverEvent.emit(this.Receiver!))
 			.then(() => this.deviceEvent.emit(this));
-		this.debugg('Okay', 'jason');
+		this.debugg('Okay', 'jason', 'good job');
 	}
 
 	/* *

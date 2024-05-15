@@ -194,25 +194,21 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 	protected get logger() {
 		return this.debug;
 	}
-	protected debugg(...aa: string[]) {
-		return this.logger.debug(aa);
+	protected debugg(a: any, ...aa: any[]) {
+		const newLine = '├-';
+		const newLineEnd = '└-';
+		const last = aa.pop();
+		// const pad = aa.map((a) => String(a).padStart(3, ''));
+		let format = `${a}`;
+		for (const item of aa) {
+			format += `\n\t     ${newLine} ${item}`;
+		}
+		format += `\n\t     ${newLineEnd} ${last}`;
+		this.logger.debug(format);
 	}
 
 	static WinstonFormatTemplate = (info: winston.Logform.TransformableInfo): string => {
-		let format = `[${info.timestamp}]:  ${info.service}
-	  [${info.level}]`;
-		// // console.debug();
-		// const a = Array.from(String(info.message));
-		// console.debug(a);
-		// if (a instanceof Array && a.length > 1) {
-		// 	for (const item of a) {
-		// 		format = `${format}
-		// 		| - ${item}`;
-		// 	}
-		// } else {
-		format += `${info.message}`;
-		// }
-		return format;
+		return `[${info.timestamp}]:  ${info.service}\n\t[${info.level}]${info.message}`;
 	};
 
 	/*
