@@ -26,6 +26,7 @@ export class ArpDiscovery extends BasicServiceDiscovery<ArpDataService> {
 				switch (isIP(ipAddress!)) {
 					case 4:
 						args.push(ipAddress!);
+						break;
 					default:
 						this.logAndEmitError(
 							new Error(`Arp: ${ipAddress}, type: ${isIP(ipAddress!)} was not validated properly.`),

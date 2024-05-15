@@ -140,7 +140,8 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	}
 
 	private monitor(event: Event<this, [MDNSService, Mac?]>) {
-		this.logger.debug('device has listeners?', event.hasListeners);
+		this.logger.debug(`device has listeners? ${event.hasListeners}`);
+		// this.logger.debug();
 		// console.debug('event.emit');
 		// event.emit(this);
 	}
@@ -223,13 +224,13 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 
 	private initProgram() {
 		if (this.MacAddress !== undefined) {
-			console.debug('DeviceService.initProgram');
+			this.logger.debug('DeviceService.initProgram');
 			this.spsProgram = new SPS(this.ProgramConfig);
 			// this.programEvent.
 			this.spsState = this.spsProgram.State;
 			const un = this.spsProgram.onAvailable((s) => {
 				this.spsState = s;
-				console.debug('ONAVAIL', s);
+				// this.logger.debug('ONAVAIL', s);
 			});
 			this.spsProgram.onUnavailable((s) => this.onProgramUnavailable(s));
 		}
