@@ -37,6 +37,7 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 	});
 	private _proc: ChildProcess;
 	private _next: ChildProcess;
+	protected state: Sps;
 	// private readonly maybeConfigPath?:string;
 	private _args: Array<string> = new Array('-c');
 	/**
@@ -114,14 +115,15 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 		this._args = configuration;
 		if (!this.isOk) {
 			this.debugMe('WARNING: NOT Okay', _path, 'Sending an unAvalable event');
-			this.unavailableEvent.emit({
+			this.state = {
 				configPath: _path,
 				content: new Buffer(''),
 				// content: listener as Buffer,
 				id: 'Sps',
 				templateConfiguration: this.parsedConfiguration(),
 				status: 'notSetup'
-			});
+			} as Sps;
+			this.updateService(this.State);
 		}
 	}
 	public start() {
@@ -155,6 +157,10 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 	private get ffmpegError() {
 		return this.logger.ffmpegError;
 	}
+	get State() {
+		return this.state;
+	}
+
 	private get ok() {
 		return this.logger.ok;
 	}

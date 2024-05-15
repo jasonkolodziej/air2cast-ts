@@ -223,8 +223,10 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 			this.spsProgram = new SPS(this.ProgramConfig);
 			// this.programEvent.
 
-			this.spsProgram?.onAvailable(this.onProgramAvailable);
-			this.spsProgram?.onUnavailable((s) => this.onProgramUnavailable(s));
+			const un = this.spsProgram.onAvailable((s) => {
+				console.debug('ONAVAIL', s);
+			});
+			this.spsProgram.onUnavailable((s) => this.onProgramUnavailable(s));
 		}
 	}
 
@@ -234,7 +236,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	};
 
 	private onProgramUnavailable: Listener<unknown, [Sps]> = (data: Sps) => {
-		console.log('DeviceService.onProgramAvailable', data);
+		console.log('DeviceService.onProgramUnavailable', data);
 		// this.withMACUpdate(data.mac_address);
 	};
 
