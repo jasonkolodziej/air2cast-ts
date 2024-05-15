@@ -2,11 +2,13 @@
 // it so that it gets served as a static asset in prod
 
 import type { PageLoad } from './$types';
+export const prerender = 'auto';
 // export const prerender = true;
 
 export const load: PageLoad = async ({
 	data, //? PageServerData from page.server.ts
-	route
+	route,
+	parent
 }) => {
 	console.debug(`${route.id}.PageLoad`);
 	// const layoutData = await parent();

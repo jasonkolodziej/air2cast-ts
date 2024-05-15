@@ -89,23 +89,15 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 		this.onDevice.bind(this);
 		const clientOptions = this.Address as PersistentClientOptions;
 		this.Client = new PersistentClient(clientOptions);
-		// this.deviceEvent.emit(this);
-		// this.Client.connect().then(() => {
-		// 	this.Receiver = ReceiverController.createReceiver({ client: this.Client });
-		// 	this.receiverEvent.emit(this.Receiver);
-		// 	// this.deviceEvent.emit(this); //* good!!
-		// });
-		// this.obtainMacAsync();
 		this.Client.connect()
 			.then(() => this.obtainMacAsync())
 			.then(() => {
 				this.Receiver = ReceiverController.createReceiver({
 					client: this.Client
 				});
-				this.receiverEvent.emit(this.Receiver);
-				this.deviceEvent.emit(this); //* good!!
-			});
-		// this.obtainMacAsync();
+			})
+			.then(() => this.receiverEvent.emit(this.Receiver!))
+			.then(() => this.deviceEvent.emit(this));
 	}
 
 	/* *
@@ -144,7 +136,15 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 		}
 		return DeviceTypes.UNKNOWN;
 	}
-
+	/**
+		# Example:
+		```typescript
+			a.onReceiver(async (r) => {
+				const vol = (await r.getVolume()).unwrapAndThrow();
+				console.debug('VOLUME', vol);
+			});
+		```
+	*/
 	get onReceiver(): AsyncSubscribable<this, [ReceiverController.Receiver]> {
 		return this.receiverEvent.subscribable;
 	}

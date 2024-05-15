@@ -1,9 +1,10 @@
+import type { Device } from '$lib/server/devices/device';
 import { discoverDevicesAsync } from '$lib/server/devices/devices.server';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({
 	// fetch,
-	locals,
+	locals: { discovered },
 	cookies,
 	params,
 	route,
@@ -19,6 +20,22 @@ export const load: LayoutServerLoad = async ({
 	const sessionid = cookies.get('sessionid');
 	// const deviceIds = Array.from(locals.discoveredMap.keys());
 	// console.debug('ids', deviceIds);
+	let devices = new Map<string, Device>();
+	if (discovered === undefined) {
+		console.log('LayoutLoad!!!! discovery undefined');
+	}
+	discovered.onAvailable((a) => {
+		devices = devices.set(a.id, a);
+		a.onReceiver(async (r) => {
+			const vol = (await r.getVolume()).unwrapAndThrow();
+			console.debug('VOLUME', vol);
+		});
+	});
+	discovered.onUpdate((n, o) => {
+		devices = devices.set(o.id, n);
+	});
+	const deviceIds = Array.from(devices.keys());
+
 	const { data } = await parent();
 
 	// const devicesArray = new Array<DeviceRecord>(...(devices.DeviceRecords.values()))
@@ -75,11 +92,11 @@ export const load: LayoutServerLoad = async ({
 		// console.debug(strippedDevices)
 		return {
 			// data: deviceData
-			devices: locals.discovered.services
+			device: deviceIds
 			// data: devices.services.map(ToDeviceRecord)
 		};
 	}
 	return {
-		devices: [] // locals.discovered.services
+		device: deviceIds // locals.discovered.services
 	};
 };
