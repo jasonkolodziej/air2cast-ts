@@ -17,19 +17,11 @@ export const load: PageServerLoad = (async ({
 	// } = await parent();
 	console.debug(`${route.id}.PageServerLoad ${isDataRequest} ${isSubRequest}`);
 	const devicesValues = new Array<Device>(...Array.from(discoveredMap.values()));
-	// const clones = devices.map((d) => d.serialize());
+	const clones = devicesValues.map((d) => d.serialize());
 	// const devicesClone = structuredClone(devices);
 	// return { devices: devices };
 	// console.debug(deviceArray);
-	const devices = new Array<{ title: string; device: string; href: string }>();
-	devicesValues?.forEach((device) => {
-		devices.push({
-			title: device.RecordDetails.FriendlyName as string,
-			href: route.id + device.id,
-			device: device.DeviceId as string
-		});
-	});
-	return { data: devices, devices: devicesValues };
+	return { devices: clones };
 	// onDevices((device) => console.log(device));
 	// const devices = await layOutdata.data;
 	// console.log(layOutdata)

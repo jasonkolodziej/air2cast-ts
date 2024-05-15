@@ -2,9 +2,9 @@
 	import { Column, Row } from 'carbon-components-svelte';
 	import type { PageData } from './$types';
 	import DeviceDetails from '$lib/device/DeviceDetails.svelte';
-	import Configuration from '$lib/configuration/Configuration.svelte';
+	// import Configuration from '$lib/configuration/Configuration.svelte';
 	export let data: PageData;
-	// console.log(data.data);
+	console.log(data);
 </script>
 
 <Row padding>
@@ -15,7 +15,7 @@
 
 <Row>
 	<Column>
-		<DeviceDetails device={data?.device.data} />
+		<DeviceDetails device={data?.device?.data} />
 	</Column>
 </Row>
 
@@ -27,6 +27,6 @@
 
 <Row>
 	<Column>
-		<Configuration items={data.data.config} />
+		<!-- <Configuration items={data.devices} /> -->
 	</Column>
 </Row>

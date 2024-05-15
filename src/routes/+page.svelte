@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Column, Row } from 'carbon-components-svelte';
 	import type { PageData } from './$types';
-	export let data: PageData;
+	// export let data: PageData;
 </script>
 
 <!-- <pre>{data.sections}</pre> -->

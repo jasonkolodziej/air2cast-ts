@@ -28,7 +28,11 @@ export const load: LayoutLoad = (async ({
 	//     );
 
 	return {
-		devices: data.devices
+		...data
+		// devices: data.devices?,
+		// device: {
+		// 	da
+		// }
 		// href: parentData.data?.at(0).href // + (params.slug !== undefined) ? '/' + params.slug : ''
 	};
 }) satisfies LayoutLoad;

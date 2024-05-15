@@ -13,7 +13,6 @@ export const load: PageLoad = (async ({
 	// const layoutData = await parent();
 	return {
 		// devices: data,
-		data: data,
 		devices: data.devices
 		// route: route.id
 	};

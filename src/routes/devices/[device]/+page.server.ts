@@ -20,7 +20,7 @@ export const load: PageServerLoad = (async ({
 		// 	// deviceStatus: await device?.deviceStatus
 		// 	// config: modifiedData(device?.deviceData?.templateConfiguration)
 		// },
-		device: { id: device, data: fDevice },
-		route: route.id
+		device: { id: device, data: fDevice }
+		// route: route.id
 	};
 }) satisfies PageServerLoad;

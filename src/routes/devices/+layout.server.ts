@@ -90,6 +90,15 @@ export const load: LayoutServerLoad = (async ({
 	// const volume = (await firstController?.receiver?.getVolume()).unwrapAndThrow()
 
 	console.debug(deviceIds);
+	const devices = new Array<Device>(...Array.from(discoveredMap.values()));
+	const devicesRoutes = new Array<{ title: string; device: string; href: string }>();
+	devices?.forEach((device) => {
+		devicesRoutes.push({
+			title: device.RecordDetails.FriendlyName as string,
+			href: route.id + device.id,
+			device: device.DeviceId as string
+		});
+	});
 
 	if ((device as unknown as string) !== undefined) {
 		// * see if the deviceId provided in params is in map?
@@ -103,7 +112,6 @@ export const load: LayoutServerLoad = (async ({
 			};
 		}
 	}
-	const devices = new Array<Device>(...Array.from(discoveredMap.values()));
 
 	// const { data } = await parent();
 	// const clones = devices.map((d) => d.serialize());

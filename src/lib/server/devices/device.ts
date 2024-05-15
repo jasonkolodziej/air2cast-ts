@@ -129,7 +129,7 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 		// event.emit(this);
 	}
 
-	serialize = () => serializeNonPOJOs(this as DeviceService);
+	serialize = () => serializeNonPOJOs(this);
 
 	private asyncMonitor(event: AsyncEvent<this, [Mac]>) {
 		console.debug('mac has listeners', event.hasListeners);

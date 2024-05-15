@@ -15,6 +15,8 @@ export const load: LayoutServerLoad = (async ({ cookies, isDataRequest, route })
 	// console.info(routes)
 	// const readableStream = createReadableStream(PWD+"/src/lib/server/spsConf.json")
 	return {
-		data: routes
+		data: {
+			routes: routes
+		}
 	};
 }) satisfies LayoutServerLoad;

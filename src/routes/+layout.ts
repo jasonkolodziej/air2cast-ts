@@ -80,13 +80,13 @@ const toProperCase = (str: string) => str.charAt(0).toUpperCase() + str.substrin
 export const load: LayoutLoad = (async ({
 	// params,
 	parent,
-	data: { data }, //? LayoutServerData from layout.server.ts
+	data, //? LayoutServerData from layout.server.ts
 	route
 }) => {
 	console.debug(`${route.id}.LayoutLoadJASSSSSON`);
-
+	const { routes } = data.data;
 	const sections: Array<{ slug: string; title: string; text: string; href: string }> = new Array();
-	(data as unknown as string[])?.forEach((item) =>
+	(routes as string[]).forEach((item) =>
 		sections.push({
 			slug: item,
 			title: toProperCase(item),
@@ -96,7 +96,7 @@ export const load: LayoutLoad = (async ({
 	);
 	return {
 		data: sections,
-		sections: sections,
-		devices: []
+		sections: sections
+		// devices: []
 	};
 }) satisfies LayoutLoad;
