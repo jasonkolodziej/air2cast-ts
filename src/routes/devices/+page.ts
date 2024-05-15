@@ -4,16 +4,17 @@
 import type { PageLoad } from './$types';
 export const prerender = 'auto';
 
-export const load: PageLoad = async ({
-	params,
+export const load: PageLoad = (async ({
 	parent, // ? LayoutData from layout.ts
 	data, //? PageServerData from page.server.ts
 	route
 }) => {
 	console.debug(`${route.id}.PageLoad`);
-
+	// const layoutData = await parent();
 	return {
-		data: data.data,
-		route: route.id
+		// devices: data,
+		data: data,
+		devices: data.devices
+		// route: route.id
 	};
-};
+}) satisfies PageLoad;

@@ -1,17 +1,16 @@
 <script lang="ts">
 	import { Button, ExpandableTile, Tag, DataTable } from 'carbon-components-svelte';
 	import { CatalogPublish, Checkmark, Events, PlayFilled, Settings } from 'carbon-icons-svelte';
-	// import type { ReceiverStatus } from '@foxxmd/chromecast-client';
-	import type { ReadonlyDevice } from '../../hooks.client';
-	import type { RecordDetails } from '$lib/server/devices/device';
+	import type { RecordDetails, DeviceService } from '$lib/server/devices/device';
 
-	export let device: ReadonlyDevice;
-	export const deviceData: RecordDetails = device.RecordDetails;
+	export let device: DeviceService | undefined;
+	export const deviceData: DeviceService = device!;
+	export const deviceDataDetails: RecordDetails = deviceData?.RecordDetails;
 	// export let deviceStatus: ReceiverStatus = device?.onReceiver(async (r: Reciever) => {
 	// 	(await r.getStatus()).unwrapAndThrow();
 	// });
-	export let routeId: string;
-	export let deviceType: string = device.Type as string;
+	export const routeId: string = '/device';
+	export let deviceType: string = deviceData?.Type as string;
 	//? Data Table
 	const headers = [
 		{ key: 'detail', value: 'Detail' },
@@ -33,8 +32,8 @@
         href={routeId+'/'+deviceData?.Id}
         on:click|preventDefault|stopPropagation={
         () => console.log("Hello world")}> -->
-		<a href={routeId + '/' + device.DeviceId}>
-			<h4>{deviceData?.FriendlyName}</h4>
+		<a href={routeId + '/' + deviceData.id}>
+			<h4>{deviceDataDetails?.FriendlyName}</h4>
 		</a>
 
 		{#if deviceType !== 'group'}
@@ -57,7 +56,7 @@
 			tooltipAlignment="start"
 			tooltipPosition="top"
 			size="small"
-			href={routeId + '/' + deviceData?.Id + '#configure'}
+			href={routeId + '/' + deviceData?.id + '#configure'}
 		></Button>
 		<Button
 			kind="ghost"
@@ -84,9 +83,9 @@
 			size="compact"
 			{headers}
 			rows={[
-				{ id: 'a', detail: 'Address', val: device?.Address?.host },
-				{ id: 'b', detail: 'Port Number', val: device?.Address?.port },
-				{ id: 'c', detail: 'Manufacturer Details', val: deviceData?.ManufacturerDetails }
+				{ id: 'a', detail: 'Address', val: deviceData?.Address?.host },
+				{ id: 'b', detail: 'Port Number', val: deviceData?.Address?.port },
+				{ id: 'c', detail: 'Manufacturer Details', val: deviceDataDetails?.ManufacturerDetails }
 				// {detail: "Address", val: deviceData?. }
 			]}
 		/>

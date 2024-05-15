@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({
+export const load: PageServerLoad = (async ({
 	// params,
 	isDataRequest,
 	parent, // ? LayoutServerData from layout.server.ts
@@ -10,7 +10,5 @@ export const load: PageServerLoad = async ({
 	const { data } = await parent();
 	console.debug(`${route.id}.PageServerLoad ${isDataRequest}`);
 
-	return {
-		data: data
-	};
-};
+	return { data: { routes: data } };
+}) satisfies PageServerLoad;

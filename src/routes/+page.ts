@@ -5,8 +5,10 @@ import type { PageLoad } from './$types';
 export const prerender = 'auto';
 // export const prerender = true;
 
-export const load: PageLoad = async ({
-	data, //? PageServerData from page.server.ts
+export const load: PageLoad = (async ({
+	data: {
+		data: { routes }
+	}, //? PageServerData from page.server.ts
 	route,
 	parent
 }) => {
@@ -19,9 +21,9 @@ export const load: PageLoad = async ({
 			{ slug: 'profile', title: 'Profile' },
 			{ slug: 'notifications', title: 'Notifications' }
 		],
-		pageData: data.data
+		data: routes
 	};
-};
+}) satisfies PageLoad;
 
 // export const load: PageLoad = async ({ parent }) => {
 // 	const { a, b } = await parent();

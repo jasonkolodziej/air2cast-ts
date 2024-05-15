@@ -3,7 +3,7 @@ import { PWD } from '$env/static/private';
 import { readdirSync } from 'fs';
 // import { dataArray } from "$lib/server/libconfig.server";
 
-export const load: LayoutServerLoad = async ({ cookies, isDataRequest, route }) => {
+export const load: LayoutServerLoad = (async ({ cookies, isDataRequest, route }) => {
 	console.debug(`${route.id}.LayoutServerLoad ${isDataRequest}`);
 	// console.debug('event.locals', locals)
 	//* Cookies
@@ -17,4 +17,4 @@ export const load: LayoutServerLoad = async ({ cookies, isDataRequest, route }) 
 	return {
 		data: routes
 	};
-};
+}) satisfies LayoutServerLoad;

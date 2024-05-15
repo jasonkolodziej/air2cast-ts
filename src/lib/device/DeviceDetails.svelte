@@ -1,6 +1,8 @@
 <script lang="ts">
+	import type { DeviceService } from '$lib/server/devices/device';
+
 	// import type { DeviceRecord } from "$lib/server/mdns.server";
-	import { json } from '@sveltejs/kit';
+	// import { json } from '@sveltejs/kit';
 	import {
 		ContentSwitcher,
 		Switch,
@@ -12,9 +14,10 @@
 		Column,
 		Row
 	} from 'carbon-components-svelte';
-	import type { ReadonlyDevice } from '../../hooks.client';
+	// import type { ReadonlyDevice } from '../../hooks.client';
 
-	export let deviceData: ReadonlyDevice | undefined;
+	export let device: DeviceService | undefined;
+	const deviceData: DeviceService = device!;
 
 	let toggled = false;
 	let selectedIndex = 1;

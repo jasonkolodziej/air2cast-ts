@@ -1,33 +1,32 @@
 <script lang="ts">
-	import { Column, Row } from "carbon-components-svelte";
-    import type { PageData } from './$types';
-	import DeviceDetails from "$lib/device/DeviceDetails.svelte";
-  import Configuration from '$lib/configuration/Configuration.svelte';
+	import { Column, Row } from 'carbon-components-svelte';
+	import type { PageData } from './$types';
+	import DeviceDetails from '$lib/device/DeviceDetails.svelte';
+	import Configuration from '$lib/configuration/Configuration.svelte';
 	export let data: PageData;
-  // console.log(data.data);
+	// console.log(data.data);
 </script>
 
 <Row padding>
-  <Column>
-    <h1>Device Details</h1>
-  </Column>
+	<Column>
+		<h1>Device Details</h1>
+	</Column>
 </Row>
 
 <Row>
-  <Column>
-    <DeviceDetails deviceData={data.data.device}/>
-  </Column>
+	<Column>
+		<DeviceDetails device={data?.device.data} />
+	</Column>
 </Row>
-
 
 <Row padding>
-  <Column>
-    <h1 id="configure">Configure</h1>
-  </Column>
+	<Column>
+		<h1 id="configure">Configure</h1>
+	</Column>
 </Row>
 
 <Row>
-  <Column>
-    <Configuration items={data.data.config}/>
-  </Column>
+	<Column>
+		<Configuration items={data.data.config} />
+	</Column>
 </Row>

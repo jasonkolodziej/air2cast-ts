@@ -77,15 +77,16 @@ import type { LayoutLoad } from './$types';
 */
 const toProperCase = (str: string) => str.charAt(0).toUpperCase() + str.substring(1);
 
-export const load: LayoutLoad = async ({
+export const load: LayoutLoad = (async ({
 	// params,
-	data, //? LayoutServerData from layout.server.ts
+	parent,
+	data: { data }, //? LayoutServerData from layout.server.ts
 	route
 }) => {
-	console.debug(`${route.id}.LayoutLoad`);
+	console.debug(`${route.id}.LayoutLoadJASSSSSON`);
 
 	const sections: Array<{ slug: string; title: string; text: string; href: string }> = new Array();
-	data.data.forEach((item) =>
+	(data as unknown as string[])?.forEach((item) =>
 		sections.push({
 			slug: item,
 			title: toProperCase(item),
@@ -95,6 +96,7 @@ export const load: LayoutLoad = async ({
 	);
 	return {
 		data: sections,
-		sections: sections
+		sections: sections,
+		devices: []
 	};
-};
+}) satisfies LayoutLoad;

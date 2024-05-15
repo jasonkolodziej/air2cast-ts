@@ -1,13 +1,12 @@
 // import type { ReadonlyDevice } from '../../hooks.client';
 import type { Device } from '$lib/server/devices/device';
-import { serializeNonPOJOs } from '$lib/server/service/types';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({
+export const load: LayoutServerLoad = (async ({
 	// fetch,
 	locals: { discovered, discoveredMap },
 	cookies,
-	params,
+	params: { device },
 	route,
 	isSubRequest,
 	isDataRequest,
@@ -37,9 +36,8 @@ export const load: LayoutServerLoad = async ({
 	// });
 
 	const deviceIds = Array.from(discoveredMap.keys());
-	const deviceValues = new Array<Device>(...Array.from(discoveredMap.values()));
-	const serializedDevices = deviceValues.map((d) => d.serialize());
-	const { data } = await parent();
+	// const deviceValues = new Array<[string, Device]>(...Array.from(discoveredMap.entries()));
+	const deviceValues = Array.from(discoveredMap.values());
 
 	// const devicesArray = new Array<DeviceRecord>(...(devices.DeviceRecords.values()))
 	// const strippedDevices = devicesArray.map(
@@ -92,15 +90,23 @@ export const load: LayoutServerLoad = async ({
 	// const volume = (await firstController?.receiver?.getVolume()).unwrapAndThrow()
 
 	console.debug(deviceIds);
-	// if (isDataRequest) {
-	// 	// console.debug(strippedDevices)
-	// 	return {
-	// 		// data: deviceData
-	// 		devices: deviceValues
-	// 		// data: devices.services.map(ToDeviceRecord)
-	// 	};
-	// }
-	return {
-		devices: serializedDevices // locals.discovered.services
-	};
-};
+
+	if ((device as unknown as string) !== undefined) {
+		// * see if the deviceId provided in params is in map?
+		const maybeDevice = discoveredMap.get(device as string);
+		if (maybeDevice !== undefined) {
+			return {
+				device: {
+					id: maybeDevice.id,
+					data: maybeDevice.serialize() // as object
+				}
+			};
+		}
+	}
+	const devices = new Array<Device>(...Array.from(discoveredMap.values()));
+
+	// const { data } = await parent();
+	// const clones = devices.map((d) => d.serialize());
+	// const devicesClone = structuredClone(devices);
+	return { devices: devices };
+}) satisfies LayoutServerLoad;

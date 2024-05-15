@@ -4,16 +4,17 @@
 	import Device from '$lib/device/Device.svelte';
 	export let data: PageData;
 	// $:({data:{promise}}=data)
-	console.debug('page data', data.data);
+	// console.debug('page data', data.data);
 </script>
 
-<!-- {#if data.data.data} -->
-<Row>
-	{#each data.data as device}
-		<Column padding>
-			<Device {device} routeId={data.route} />
-			<!-- <Device routeId={data.route} deviceData={device.deviceData}/> -->
-		</Column>
-	{/each}
-</Row>
-<!-- {/if} -->
+{#if data?.devices}
+	<Row>
+		{#each data?.devices as device}
+			<Column padding>
+				<Device {device} />
+				<!-- <Device {device} /> // routeId={data.route} -->
+				<!-- <Device routeId={data.route} deviceData={device.deviceData}/> -->
+			</Column>
+		{/each}
+	</Row>
+{/if}

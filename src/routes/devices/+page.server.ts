@@ -1,8 +1,9 @@
 // import { serializeNonPOJOs } from '$lib/server/service/types';
 // import type { ReadonlyDevice } from '../../hooks.client';
+import type { Device } from '$lib/server/devices/device';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({
+export const load: PageServerLoad = (async ({
 	params,
 	isSubRequest,
 	isDataRequest,
@@ -15,24 +16,34 @@ export const load: PageServerLoad = async ({
 	// 	data: { devices }
 	// } = await parent();
 	console.debug(`${route.id}.PageServerLoad ${isDataRequest} ${isSubRequest}`);
-
+	const devicesValues = new Array<Device>(...Array.from(discoveredMap.values()));
+	// const clones = devices.map((d) => d.serialize());
+	// const devicesClone = structuredClone(devices);
+	// return { devices: devices };
 	// console.debug(deviceArray);
-	// const devices = new Array<{title: string; slug: string; href: string;}>()
-	// data?.forEach((service) => {
-	//     devices.push({
-	//         title: service.AssignedName,
-	//         href: DataId(service),
-	//         slug: service.name
-	//     })
-	// })
+	const devices = new Array<{ title: string; device: string; href: string }>();
+	devicesValues?.forEach((device) => {
+		devices.push({
+			title: device.RecordDetails.FriendlyName as string,
+			href: route.id + device.id,
+			device: device.DeviceId as string
+		});
+	});
+	return { data: devices, devices: devicesValues };
 	// onDevices((device) => console.log(device));
 	// const devices = await layOutdata.data;
 	// console.log(layOutdata)
-	const devices = Array.from(discoveredMap.values());
-	// const clones = devices.map((d) => d.serialize()!);
-	// const devicesClone = structuredClone(devices);
-	return {
-		device: route.id,
-		data: devices // as Dev
-	}; // satisfies PageServerLoad;
-};
+
+	// if ((params?. !== undefined) {
+	// 	// * see if the deviceId provided in params is in map?
+	// 	const maybeDevice = discoveredMap.get(device as string);
+	// 	if (maybeDevice !== undefined) {
+	// 		return {
+	// 			device: {
+	// 				id: maybeDevice.id,
+	// 				data: maybeDevice.serialize() // as object
+	// 			}
+	// 		};
+	// 	}
+	// }
+}) satisfies PageServerLoad;

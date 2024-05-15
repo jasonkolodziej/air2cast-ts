@@ -2,7 +2,7 @@
 //? import type { env } from "$env/dynamic/private";
 //? for information about these interfaces
 
-import type { Device } from '$lib/server/devices/device';
+import type { Device, DeviceService } from '$lib/server/devices/device';
 import type { ServiceDiscovery } from 'tinkerhub-discovery';
 import type { DeviceOb } from './hooks.client';
 
@@ -20,7 +20,13 @@ declare global {
 			discovered: ServiceDiscovery<Device>;
 			discoveredMap: Map<string, Device>;
 		}
-		// interface PageData {}
+		interface PageData {
+			devices?: ArrayLike<DeviceService>;
+			device?: {
+				id: string;
+				data: DeviceService;
+			};
+		}
 		// interface PageState {}
 		interface Platform {}
 	}
