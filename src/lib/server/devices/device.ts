@@ -235,7 +235,7 @@ export class Device extends AbstractDestroyableService implements DeviceService 
 				this.Receiver = ReceiverController.createReceiver({
 					client: this.Client
 				});
-				this.receiverEvent.emit(this.Receiver);
+				this.receiverEvent.emit(this.Receiver!);
 				this.deviceEvent.emit(this); //* good!!
 				return this;
 			});
