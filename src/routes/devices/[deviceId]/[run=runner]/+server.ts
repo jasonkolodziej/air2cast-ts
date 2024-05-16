@@ -13,7 +13,9 @@ export const GET = async ({ locals, request, url, route, params: { deviceId, run
 			const status = (await device.Receiver?.getStatus())?.unwrapAndThrow();
 			//return new Response(json(status));
 			//* launch the media app on the Chromecast and join the session (so we can control the CC)
-			// const media = (await DefaultMediaApp.launchAndJoin({client: device.Client})).unwrapWithErr(); //.then(Result.unwrapWithErr);
+			const media = (
+				await DefaultMediaApp.launchAndJoin({ client: device.Client })
+			).unwrapWithErr(); //.then(Result.unwrapWithErr);
 			//* if the media app failed to load, log the error
 			// if (!media.isOk) return error(404, media.value);
 			//* queue up a couple of videos
@@ -31,6 +33,8 @@ export const GET = async ({ locals, request, url, route, params: { deviceId, run
 			// });
 			return json({ newUrl, status });
 			break;
+		case 'disconnect':
+			const status = (await device.Receiver?.getStatus())?.unwrapAndThrow();
 
 		default:
 			return error(500, `No route ${url}`);

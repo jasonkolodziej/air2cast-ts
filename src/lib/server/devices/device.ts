@@ -1,6 +1,8 @@
 import {
+	type MediaController,
 	PersistentClient,
 	ReceiverController,
+	Result,
 	type ReceiverStatus
 } from '@foxxmd/chromecast-client';
 import type { PersistentClientOptions } from '@foxxmd/chromecast-client/dist/cjs/src/persistentClient';
@@ -46,6 +48,10 @@ export interface DeviceServiceSubscribable extends DeviceService {
 	readonly onDevice: Subscribable<this, [Device]>;
 	readonly onClient: Subscribable<this, [PersistentClient]>;
 	readonly onReceiver: AsyncSubscribable<this, [ReceiverController.Receiver]>;
+}
+
+export interface DeviceServiceMedia extends DeviceServiceSubscribable {
+	MediaController: Result<typeof MediaController>;
 }
 
 export class Device extends AbstractDestroyableService implements DeviceServiceSubscribable {
@@ -126,7 +132,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 			})
 			.then(() => this.receiverEvent.emit(this.Receiver!))
 			.then(() => this.deviceEvent.emit(this));
-		this.debugg('Okay', 'jason', 'good job');
+		this.info('Okay', 'jason', 'good job');
 	}
 
 	/* *
@@ -140,7 +146,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	}
 
 	private monitor(event: Event<this, [MDNSService, Mac?]>) {
-		this.logger.debug(`device has listeners? ${event.hasListeners}`);
+		this.debugg(`device has listeners? ${event.hasListeners}`);
 		// this.logger.debug();
 		// console.debug('event.emit');
 		// event.emit(this);
@@ -224,7 +230,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 
 	private initProgram() {
 		if (this.MacAddress !== undefined) {
-			this.logger.debug('DeviceService.initProgram');
+			this.debugg('DeviceService.initProgram');
 			this.spsProgram = new SPS(this.ProgramConfig);
 			// this.programEvent.
 			this.spsState = this.spsProgram.State;
@@ -237,7 +243,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	}
 
 	private onProgramAvailable: Listener<unknown, [Sps]> = (data: Sps) => {
-		console.debug('DeviceService.onProgramAvailable');
+		this.debugg('DeviceService.onProgramAvailable');
 		// this.withMACUpdate(data.mac_address);
 	};
 

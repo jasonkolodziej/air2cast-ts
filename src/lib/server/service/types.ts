@@ -3,14 +3,16 @@ import type { Logger as ChaLogger } from '@lvksh/logger';
 import { type Subscribable, Event } from 'atvik';
 import chalk from 'chalk';
 // import pkg from 'debug';
-import winston from 'winston';
+import winston, { type LeveledLogMethod } from 'winston';
 import Transport from 'winston-transport';
 // * helpful exports
 // const { debug } = pkg;
-const { combine, timestamp, printf, colorize, align } = winston.format;
+const { combine, timestamp, printf, colorize, align, label } = winston.format;
+const { debug, info } = winston;
 export type WinstonLogger = winston.Logger;
 export type Logger = WinstonLogger | ChaLogger<string>;
 export type Entry = winston.LogEntry;
+// type LogFunction = winston.LogMethod
 
 // export const NewLogEntry = (level, messasge, opts):Entry => {return {} as Entry;}
 
@@ -35,6 +37,7 @@ export const WinstonLogger = (serviceType?: string): WinstonLogger => {
 			timestamp({
 				format: 'YYYY-MM-DD hh:mm:ss.SSS A'
 			}),
+			// label({ message: false, label: 'OH NO' }),
 			align(),
 			printf(AbstractDestroyableService.WinstonFormatTemplate)
 		),
@@ -194,7 +197,25 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 	protected get logger() {
 		return this.debug;
 	}
-	protected debugg(a: any, ...aa: any[]) {
+	protected debugg = (a: any, ...aa: any[]) =>
+		this.logFormatter.bind(this.debugg)(this.logger.debug as LeveledLogMethod, a, ...aa);
+
+	protected info = (a: any, ...aa: any[]) =>
+		this.logFormatter.bind(this.info)(this.logger.info as LeveledLogMethod, a, ...aa);
+
+	protected crit = (a: any, ...aa: any[]) =>
+		this.logFormatter.bind(this.crit)(this.logger.crit as LeveledLogMethod, a, ...aa);
+
+	protected emerg = (a: any, ...aa: any[]) =>
+		this.logFormatter.bind(this.emerg)(this.logger.emerg as LeveledLogMethod, a, ...aa);
+
+	protected warn = (a: any, ...aa: any[]) =>
+		this.logFormatter.bind(this.warn)(this.logger.warn as LeveledLogMethod, a, ...aa);
+
+	protected error = (a: any, ...aa: any[]) =>
+		this.logFormatter.bind(this.error)(this.logger.error as LeveledLogMethod, a, ...aa);
+
+	private logFormatter(f: LeveledLogMethod, a: any, ...aa: any[]): Logger {
 		const newLine = '├-';
 		const newLineEnd = '└-';
 		const last = aa.pop();
@@ -203,12 +224,18 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 		for (const item of aa) {
 			format += `\n\t     ${newLine} ${item}`;
 		}
-		format += `\n\t     ${newLineEnd} ${last}`;
-		this.logger.debug(format);
+		if (last !== undefined) {
+			format += `\n\t     ${newLineEnd} ${last}`;
+		}
+		// console.log(f);
+		return f(format);
 	}
 
 	static WinstonFormatTemplate = (info: winston.Logform.TransformableInfo): string => {
-		return `[${info.timestamp}]:  ${info.service}\n\t[${info.level}]${info.message}`;
+		// const upperLevel = String(info.level).toUpperCase();
+		return info.label !== undefined
+			? `[${info.timestamp}]:\t${info.service}\n   [${String(info.label).toUpperCase()}:${info.level}]${info.message}`
+			: `[${info.timestamp}]:\t${info.service}\n\t [${info.level}]${info.message}`;
 	};
 
 	/*
