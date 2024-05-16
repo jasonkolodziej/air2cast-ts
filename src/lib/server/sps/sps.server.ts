@@ -6,7 +6,7 @@ import { Readable } from 'stream';
 import { platform } from 'os';
 import { BasicServiceDiscovery } from 'tinkerhub-discovery';
 import { readFileSync, existsSync, writeFileSync } from 'fs';
-import { type Logger } from '@lvksh/logger';
+// import { type Logger } from '@lvksh/logger';
 import chalk from 'chalk';
 import type {
 	KV,
@@ -17,24 +17,25 @@ import type {
 	DeviceConfig
 } from '$lib/server/sps/types';
 import { SectionsWriter, UpdateFields } from '$lib/server/sps/utils';
-import { ChalkLogger } from '$lib/server/service/types';
+import { ChalkLogger, WinstonLogger, type Logger } from '$lib/server/service/types';
 
 export abstract class AbstractChildProc {}
 
 export class SPS extends BasicServiceDiscovery<Sps> {
 	private _parent: Subscribable<Readable, any[]>;
-	protected logger: Logger<string> = ChalkLogger({
-		ffmpegError: {
-			label: chalk.bgRed.white.bold(`[TRANSCODER]`),
-			newLine: chalk.bgRed.white.bold('| '),
-			newLineEnd: chalk.bgRed.white.bold('\\-')
-		},
-		spsError: {
-			label: chalk.bgYellowBright.black.bold(`[shairport-sync]`),
-			newLine: chalk.bgYellowBright.black.bold('| '),
-			newLineEnd: chalk.bgYellowBright.black.bold('\\-')
-		}
-	});
+	// protected logger: Logger<string> = ChalkLogger({
+	// 	ffmpegError: {
+	// 		label: chalk.bgRed.white.bold(`[TRANSCODER]`),
+	// 		newLine: chalk.bgRed.white.bold('| '),
+	// 		newLineEnd: chalk.bgRed.white.bold('\\-')
+	// 	},
+	// 	spsError: {
+	// 		label: chalk.bgYellowBright.black.bold(`[shairport-sync]`),
+	// 		newLine: chalk.bgYellowBright.black.bold('| '),
+	// 		newLineEnd: chalk.bgYellowBright.black.bold('\\-')
+	// 	}
+	// });
+	protected logger: Logger = WinstonLogger('SPS');
 	private _proc: ChildProcess;
 	private _next: ChildProcess;
 	protected state: Sps;

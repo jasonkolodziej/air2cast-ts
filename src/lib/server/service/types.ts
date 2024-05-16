@@ -3,7 +3,8 @@ import type { Logger as ChaLogger } from '@lvksh/logger';
 import { type Subscribable, Event } from 'atvik';
 import chalk from 'chalk';
 // import pkg from 'debug';
-import winston, { type LeveledLogMethod } from 'winston';
+import winston, { type LeveledLogMethod, type Logform } from 'winston';
+// import { LabelOptions } from 'winston';
 import Transport from 'winston-transport';
 // * helpful exports
 // const { debug } = pkg;
@@ -20,7 +21,7 @@ export type Entry = winston.LogEntry;
  * WinstonLogger constructs a Logger from pkg [`winston`](https://www.npmjs.com/package/winston#multiple-transports-of-the-same-type)
  * @returns winston.Logger class object
  */
-export const WinstonLogger = (serviceType?: string): WinstonLogger => {
+export const WinstonLogger = (serviceType?: string, opts?: Logform.LabelOptions): WinstonLogger => {
 	const logger = winston.createLogger({
 		level: process.env.LOG_LEVEL || 'debug',
 		// format: winston.format.json(),
@@ -37,7 +38,8 @@ export const WinstonLogger = (serviceType?: string): WinstonLogger => {
 			timestamp({
 				format: 'YYYY-MM-DD hh:mm:ss.SSS A'
 			}),
-			// label({ message: false, label: 'OH NO' }),
+			label({ message: false, label: 'OH NO' }),
+			label({ message: false, label: 'Test?' }),
 			align(),
 			printf(AbstractDestroyableService.WinstonFormatTemplate)
 		),
