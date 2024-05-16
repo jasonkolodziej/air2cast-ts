@@ -1,5 +1,5 @@
 import type { DeviceService } from '$lib/server/devices/device';
-import type { EntryGenerator, PageServerLoad } from './$types';
+import type { EntryGenerator, PageServerLoad, RequestHandler } from './$types';
 
 export const entries: EntryGenerator = async () => {
 	const response = await fetch('/api/devices');
