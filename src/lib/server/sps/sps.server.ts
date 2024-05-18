@@ -4,10 +4,8 @@ import { createEventAdapter, type Subscribable } from 'atvik';
 import { ChildProcess, spawn } from 'child_process';
 import { Readable } from 'stream';
 import { platform } from 'os';
-import { BasicServiceDiscovery } from 'tinkerhub-discovery';
 import { readFileSync, existsSync, writeFileSync } from 'fs';
 // import { type Logger } from '@lvksh/logger';
-import chalk from 'chalk';
 import type {
 	KV,
 	ParsedConfiguration,
@@ -17,11 +15,14 @@ import type {
 	DeviceConfig
 } from '$lib/server/sps/types';
 import { SectionsWriter, UpdateFields } from '$lib/server/sps/utils';
-import { ChalkLogger, WinstonLogger, type Logger } from '$lib/server/service/types';
+import { BasicServiceDiscoveryJ } from '../service/types';
 
 export abstract class AbstractChildProc {}
 
-export class SPS extends BasicServiceDiscovery<Sps> {
+export class SPS extends BasicServiceDiscoveryJ<SPS, Sps> {
+	protected beforeDestroy(): Promise<void> {
+		throw new Error('Method not implemented.');
+	}
 	private _parent: Subscribable<Readable, any[]>;
 	// protected logger: Logger<string> = ChalkLogger({
 	// 	ffmpegError: {
@@ -35,7 +36,13 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 	// 		newLineEnd: chalk.bgYellowBright.black.bold('\\-')
 	// 	}
 	// });
-	protected logger: Logger = WinstonLogger('SPS');
+	// protected logger: Logger = WinstonLogger('SPS');
+	// protected info: (a: any, ...aa: any[]) => Logger;
+	// protected crit: (a: any, ...aa: any[]) => Logger;
+	// protected emerg: (a: any, ...aa: any[]) => Logger;
+	// protected warn: (a: any, ...aa: any[]) => Logger;
+	// protected error: (a: any, ...aa: any[]) => Logger;
+
 	private _proc: ChildProcess;
 	private _next: ChildProcess;
 	protected state: Sps;
@@ -111,11 +118,12 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 	constructor(deviceInfo: DeviceConfig) {
 		super('sps:ffmpeg');
 		// * check to see if file exists
-		this.inform('Resolving Configuration');
+		// this.destroy.bind(super.destroy);
+		this.provider = this;
 		const [_path, configuration] = this.args(deviceInfo);
 		this._args = configuration;
 		if (!this.isOk) {
-			this.debugMe('WARNING: NOT Okay', _path, 'Sending an unAvalable event');
+			this.debug('WARNING: NOT Okay', _path, 'Sending an unAvalable event');
 			this.state = {
 				configPath: _path,
 				content: null,
@@ -125,8 +133,8 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 				status: 'notSetup'
 			} as Sps;
 			this.unavailableEvent.emit(this.state);
-			const some = super.updateService(this.State);
-			this.debugMe('WARNING: UpdateService', _path, `${some}`);
+			const some = this.updateService(this.State);
+			this.debug('WARNING: UpdateService', _path, `${some}`);
 		} else {
 			this.state = {
 				configPath: _path,
@@ -137,18 +145,19 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 				status: 'notStarted'
 			} as Sps;
 			this.availableEvent.emit(this.state);
-			const some = super.updateService(this.State);
-			this.ok('ok: UpdateService', _path, `${some}`);
+			const some = this.updateService(this.State);
+			this.debug('ok: UpdateService', _path, `${some}`);
 		}
 	}
+
 	public start() {
-		this.inform('Spawning Shairport Sync');
+		this.info('Spawning Shairport Sync');
 		this._proc = spawn('shairport-sync', this._args); //? configuration
-		this.inform('Spawning FFMpeg');
+		this.info('Spawning FFMpeg');
 		this._next = spawn('ffmpeg', this.ffmpegConfig);
 
 		// * send data from shairport-sync to ffmpeg stdout-->stdin
-		this.inform('Piping children');
+		this.info('Piping children');
 		this._proc.stdout!.pipe(this._next.stdin!);
 		this._proc.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'sps'));
 		this._next.stderr?.on('data', (err) => this.logAndEmitError(Error(err), 'ffmpeg'));
@@ -167,23 +176,13 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 		});
 	}
 	private get spsError() {
-		return this.logger.spsError;
+		return this.error;
 	}
 	private get ffmpegError() {
-		return this.logger.ffmpegError;
+		return this.error;
 	}
 	get State() {
 		return this.state;
-	}
-
-	private get ok() {
-		return this.logger.ok;
-	}
-	private get debugMe() {
-		return this.logger.debug;
-	}
-	private get inform() {
-		return this.logger.info;
 	}
 
 	protected override logAndEmitError(
@@ -231,11 +230,11 @@ export class SPS extends BasicServiceDiscovery<Sps> {
 				// case: 'win32':
 			}
 			if (existsSync(fileName)) {
-				this.debugMe('File Found!', fileName);
+				this.debug('File Found!', fileName);
 				this.isOk = true;
 				this._args.push(fileName);
 			} else {
-				this.debugMe(
+				this.debug(
 					'WARNING: Attempting to generate a configuration!',
 					info.name,
 					`on platform ${pForm}`

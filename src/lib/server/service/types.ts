@@ -2,10 +2,20 @@ import { createLogger, type MethodList } from '@lvksh/logger';
 import type { Logger as ChaLogger } from '@lvksh/logger';
 import { type Subscribable, Event } from 'atvik';
 import chalk from 'chalk';
+import {
+	AbstractServiceDiscovery,
+	BasicServiceDiscovery,
+	type AdvancedMapper,
+	type Mapper,
+	type Service,
+	type ServiceDiscovery,
+	type ServicePredicate
+} from 'tinkerhub-discovery';
 // import pkg from 'debug';
-import winston, { type LeveledLogMethod, type Logform } from 'winston';
+import winston, { type LeveledLogMethod } from 'winston';
 // import { LabelOptions } from 'winston';
 import Transport from 'winston-transport';
+import type { Sps } from '../sps/types';
 // * helpful exports
 // const { debug } = pkg;
 const { combine, timestamp, printf, colorize, align, label } = winston.format;
@@ -21,7 +31,7 @@ export type Entry = winston.LogEntry;
  * WinstonLogger constructs a Logger from pkg [`winston`](https://www.npmjs.com/package/winston#multiple-transports-of-the-same-type)
  * @returns winston.Logger class object
  */
-export const WinstonLogger = (serviceType?: string, opts?: Logform.LabelOptions): WinstonLogger => {
+export const WinstonLogger = (serviceType?: string): WinstonLogger => {
 	const logger = winston.createLogger({
 		level: process.env.LOG_LEVEL || 'debug',
 		// format: winston.format.json(),
@@ -38,7 +48,7 @@ export const WinstonLogger = (serviceType?: string, opts?: Logform.LabelOptions)
 			timestamp({
 				format: 'YYYY-MM-DD hh:mm:ss.SSS A'
 			}),
-			label({ message: false, label: 'OH NO' }),
+			// label({ message: false, label: 'OH NO' }),
 			label({ message: false, label: 'Test?' }),
 			align(),
 			printf(AbstractDestroyableService.WinstonFormatTemplate)
@@ -65,6 +75,7 @@ export const WinstonLogger = (serviceType?: string, opts?: Logform.LabelOptions)
 			new winston.transports.Console()
 		]
 	});
+	// logger.defaultMeta();
 	//
 	// If we're not in production then log to the `console` with the format:
 	// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
@@ -162,21 +173,22 @@ export interface ServicePublisher {
 /*
  * Abstract base class to simplify implementation of publishers.
  */
-export abstract class AbstractServicePublisher implements ServicePublisher {
+export abstract class AbstractServicePublisher
+	// extends AbstractServiceDiscovery<P>
+	implements ServicePublisher
+{
 	/*
 	 * Debugger that can be used to output debug messages for the publisher.
 	 */
-	protected readonly debug: Logger;
+	protected readonly _debug: Logger;
 	/*
 	 * Event used to emit errors for this publisher.
 	 */
 	protected readonly errorEvent: Event<this, [Error]>;
 
-	constructor(type: string) {
-		// this.debug = debug('arp:discovery:publisher:' + type);
-		this.debug = WinstonLogger(type);
-		this.logger.debug(`type of:(${type})`, () => {});
-		// this.logger.info('HELLO');
+	constructor(type: string, logger: Logger = WinstonLogger(type)) {
+		this._debug = logger;
+		// this.logger.debug(`type of:(${type})`, () => {});
 		this.errorEvent = new Event(this);
 	}
 
@@ -190,17 +202,17 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 	 * @param error
 	 */
 	protected logAndEmitError(error: Error, message: string = 'An error occurred:') {
-		this.logger.error(message, error.cause);
+		this.error(message, error.cause);
 		// this.logger.emit('logged', message);
 		// this.debug(message, error);
 		this.errorEvent.emit(error);
 	}
 
 	protected get logger() {
-		return this.debug;
+		return this._debug;
 	}
-	protected debugg = (a: any, ...aa: any[]) =>
-		this.logFormatter.bind(this.debugg)(this.logger.debug as LeveledLogMethod, a, ...aa);
+	protected debug = (a: any, ...aa: any[]) =>
+		this.logFormatter.bind(this.debug)(this.logger.debug as LeveledLogMethod, a, ...aa);
 
 	protected info = (a: any, ...aa: any[]) =>
 		this.logFormatter.bind(this.info)(this.logger.info as LeveledLogMethod, a, ...aa);
@@ -218,6 +230,22 @@ export abstract class AbstractServicePublisher implements ServicePublisher {
 		this.logFormatter.bind(this.error)(this.logger.error as LeveledLogMethod, a, ...aa);
 
 	private logFormatter(f: LeveledLogMethod, a: any, ...aa: any[]): Logger {
+		const newLine = '├-';
+		const newLineEnd = '└-';
+		const last = aa.pop();
+		// const pad = aa.map((a) => String(a).padStart(3, ''));
+		let format = `${a}`;
+		for (const item of aa) {
+			format += `\n\t     ${newLine} ${item}`;
+		}
+		if (last !== undefined) {
+			format += `\n\t     ${newLineEnd} ${last}`;
+		}
+		// console.log(f);
+		return f(format);
+	}
+
+	protected static logFormatterStatic(f: LeveledLogMethod, a: any, ...aa: any[]): Logger {
 		const newLine = '├-';
 		const newLineEnd = '└-';
 		const last = aa.pop();
@@ -282,26 +310,46 @@ export abstract class AbstractDestroyableService extends AbstractServicePublishe
 	}
 }
 
-//
-// Inherit from `winston-transport` so you can take advantage
-// of the base functionality and `.exceptions.handle()`.
-export class YourCustomTransport extends Transport {
-	constructor(opts: winston.transport.TransportStreamOptions | undefined) {
-		super(opts);
-		//
-		// Consume any custom options here. e.g.:
-		// - Connection information for databases
-		// - Authentication information for APIs (e.g. loggly, papertrail,
-		//   logentries, etc.).
-		//
+export abstract class BasicServiceDiscoveryJ<
+		Provider extends BasicServiceDiscoveryJ,
+		S extends Service
+	>
+	extends BasicServiceDiscovery<S>
+	implements AbstractDestroyableService
+{
+	protected _debug: Logger;
+	protected errorEvent: Event<this, [Error]>;
+	protected get logger(): Logger {
+		return this._debug;
 	}
-
-	log(info: any, callback: () => void) {
-		setImmediate(() => {
-			this.emit('logged', info);
-		});
-
-		// Perform the writing to the remote service
-		callback();
+	private _provider: Provider;
+	constructor(type: string, logger: Logger = WinstonLogger(type)) {
+		super(type);
+		this.errorEvent = new Event(this);
+		super.logAndEmitError.bind(this.logAndEmitError);
+		this._debug = logger;
+		this.emerg = this.logger.emerg;
+		this.info = this.logger.info;
+		this.crit = this.logger.crit;
+		this.warn = this.logger.warn;
+		this.error = this.logger.error;
+		this.setServices = super.setServices;
+		this.updateService = super.updateService;
+		this.removeService = super.removeService;
 	}
+	protected set provider(parent: Provider) {
+		this._provider = parent;
+	}
+	// protected logFormatter = (f: LeveledLogMethod, a: any, ...aa: any[]): Logger => // AbstractServicePublisher()
+	public abstract beforeDestroy(): Promise<void>;
+
+	protected info: (a: any, ...aa: any[]) => Logger;
+	protected crit: (a: any, ...aa: any[]) => Logger;
+	protected emerg: (a: any, ...aa: any[]) => Logger;
+	protected warn: (a: any, ...aa: any[]) => Logger;
+	protected error: (a: any, ...aa: any[]) => Logger;
+
+	protected updateService: (service: S) => S | null;
+	protected setServices: (services: Iterable<S>) => void;
+	protected removeService: (service: string | S) => S | null;
 }
