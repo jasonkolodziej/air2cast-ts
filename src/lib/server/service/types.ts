@@ -341,7 +341,7 @@ export abstract class BasicServiceDiscoveryJ<
 		this._provider = parent;
 	}
 	// protected logFormatter = (f: LeveledLogMethod, a: any, ...aa: any[]): Logger => // AbstractServicePublisher()
-	public abstract beforeDestroy(): Promise<void>;
+	protected abstract beforeDestroy(): Promise<void>;
 
 	protected info: (a: any, ...aa: any[]) => Logger;
 	protected crit: (a: any, ...aa: any[]) => Logger;

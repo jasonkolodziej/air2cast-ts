@@ -16,7 +16,7 @@ export interface DeviceConfig {
 export interface Sps extends Service {
 	readonly status: string;
 	readonly configPath: PathOrFileDescriptor;
-	readonly content: Buffer;
+	readonly content?: Buffer;
 	templateConfiguration: ParsedConfiguration;
 	// templateConfig:
 }

@@ -126,7 +126,7 @@ export class SPS extends BasicServiceDiscoveryJ<SPS, Sps> {
 			this.debug('WARNING: NOT Okay', _path, 'Sending an unAvalable event');
 			this.state = {
 				configPath: _path,
-				content: null,
+				// content: null,
 				// content: listener as Buffer,
 				id: 'Sps',
 				templateConfiguration: this.parsedConfiguration(),
@@ -138,7 +138,7 @@ export class SPS extends BasicServiceDiscoveryJ<SPS, Sps> {
 		} else {
 			this.state = {
 				configPath: _path,
-				content: null,
+				// content: null,
 				// content: listener as Buffer,
 				id: 'Sps',
 				templateConfiguration: this.parsedConfiguration(),
