@@ -337,8 +337,8 @@ export abstract class BasicDestroyableServiceDiscovery<
 	}
 	constructor(type: string, logger: Logger = WinstonLogger(type), parent?: Provider) {
 		super(type);
-		this.provider(parent);
 
+		// this.provider = parent!;
 		this._debug = logger;
 		this.logFormatter = AbstractServicePublisher.logFormatterStatic;
 		this.emerg = this.logger.emerg;
