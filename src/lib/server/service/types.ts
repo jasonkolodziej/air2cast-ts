@@ -124,8 +124,16 @@ export interface ServicePublisher {
 export class LoggingServices extends winston.Container {
 	private readonly _main: LoggingService;
 	constructor(typeOrId?: string, parent?: LoggingService) {
-		super(LoggingService.WinstonOptions(typeOrId));
-		this._main = this.Add('main');
+		if (parent !== undefined) {
+			const previous = ((parent as unknown as winston.Logger).defaultMeta?.service as string).split(
+				'service-'
+			)[0];
+			super(LoggingService.WinstonOptions(previous));
+			this._main = this.Add('main', LoggingService.WinstonOptions(previous + typeOrId));
+		} else {
+			super(LoggingService.WinstonOptions(typeOrId));
+			this._main = this.Add('main');
+		}
 	}
 
 	Add = (id: string, options?: LoggerOptions): LoggingService =>
