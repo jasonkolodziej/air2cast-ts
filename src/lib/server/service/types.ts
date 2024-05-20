@@ -2,15 +2,7 @@ import { createLogger, type MethodList } from '@lvksh/logger';
 import type { Logger as ChaLogger } from '@lvksh/logger';
 import { type Subscribable, Event } from 'atvik';
 import chalk from 'chalk';
-import {
-	AbstractServiceDiscovery,
-	BasicServiceDiscovery,
-	type AdvancedMapper,
-	type Mapper,
-	type Service,
-	type ServiceDiscovery,
-	type ServicePredicate
-} from 'tinkerhub-discovery';
+import { BasicServiceDiscovery, type Service } from 'tinkerhub-discovery';
 // import pkg from 'debug';
 import winston, { type LeveledLogMethod } from 'winston';
 // import { LabelOptions } from 'winston';
@@ -19,7 +11,8 @@ import winston, { type LeveledLogMethod } from 'winston';
 const { combine, timestamp, printf, colorize, align, label } = winston.format;
 const { debug, info } = winston;
 export type WinstonLogger = winston.Logger;
-export type Logger = WinstonLogger | ChaLogger<string>;
+export type WinstonLoggers = winston.Container;
+export type Logger = WinstonLogger | WinstonLoggers; //| ChaLogger<string>;
 export type Entry = winston.LogEntry;
 // type LogFunction = winston.LogMethod
 
@@ -30,7 +23,29 @@ export type Entry = winston.LogEntry;
  * @returns winston.Logger class object
  */
 export const WinstonLogger = (serviceType?: string): WinstonLogger => {
-	const logger = winston.createLogger({
+	const logger = winston.createLogger(WinstonOptions(serviceType));
+	//* If we're not in production then log to the `console` with the format:
+	//* `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
+	if (process.env.NODE_ENV !== 'production') {
+		// //? Streaming
+		// //
+		// // Start at the end.
+		// //
+		// winston.stream({ start: -1 }).on('log', function(log) {
+		// 	console.log(log);
+		// });
+		// logger.add(new winston.transports.Console({
+		// 	format: winston.format.combine(
+		// 		winston.format.simple(),
+		// 		winston.format.colorize()
+		// 	)}
+		// ));
+	}
+	return logger;
+};
+
+const WinstonOptions = (serviceType?: string) => {
+	return {
 		level: process.env.LOG_LEVEL || 'debug',
 		// format: winston.format.json(),
 		// format: combine(
@@ -47,7 +62,7 @@ export const WinstonLogger = (serviceType?: string): WinstonLogger => {
 				format: 'YYYY-MM-DD hh:mm:ss.SSS A'
 			}),
 			// label({ message: false, label: 'OH NO' }),
-			label({ message: false, label: 'Test?' }),
+			// label({ message: false, label: 'Test?' }),
 			align(),
 			printf(AbstractDestroyableService.WinstonFormatTemplate)
 		),
@@ -72,27 +87,7 @@ export const WinstonLogger = (serviceType?: string): WinstonLogger => {
 			// })
 			new winston.transports.Console()
 		]
-	});
-	// logger.defaultMeta();
-	//
-	// If we're not in production then log to the `console` with the format:
-	// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
-	if (process.env.NODE_ENV !== 'production') {
-		// //? Streaming
-		// //
-		// // Start at the end.
-		// //
-		// winston.stream({ start: -1 }).on('log', function(log) {
-		// 	console.log(log);
-		// });
-		// logger.add(new winston.transports.Console({
-		// 	format: winston.format.combine(
-		// 		winston.format.simple(),
-		// 		winston.format.colorize()
-		// 	)}
-		// ));
-	}
-	return logger;
+	};
 };
 
 /**
@@ -186,7 +181,6 @@ export abstract class AbstractServicePublisher
 
 	constructor(type: string, logger: Logger = WinstonLogger(type)) {
 		this._debug = logger;
-		// this.logger.debug(`type of:(${type})`, () => {});
 		this.errorEvent = new Event(this);
 	}
 	/*
@@ -195,7 +189,6 @@ export abstract class AbstractServicePublisher
 	get onError() {
 		return this.errorEvent.subscribable;
 	}
-
 	/*
 	 * Log and emit an error for this discovery.
 	 *
@@ -212,22 +205,45 @@ export abstract class AbstractServicePublisher
 		return this._debug;
 	}
 	protected debug = (a: any, ...aa: any[]) =>
-		this.logFormatter.bind(this.debug)(this.logger.debug as LeveledLogMethod, a, ...aa);
+		this.logFormatter.bind(this.debug, (this.logger as WinstonLogger).debug as LeveledLogMethod)(
+			a,
+			...aa
+		);
 
 	protected info = (a: any, ...aa: any[]) =>
-		this.logFormatter.bind(this.info)(this.logger.info as LeveledLogMethod, a, ...aa);
+		this.logFormatter.bind(this.info)(
+			(this.logger as WinstonLogger).info as LeveledLogMethod,
+			a,
+			...aa
+		);
 
 	protected crit = (a: any, ...aa: any[]) =>
-		this.logFormatter.bind(this.crit)(this.logger.crit as LeveledLogMethod, a, ...aa);
+		this.logFormatter.bind(this.crit)(
+			(this.logger as WinstonLogger).crit as LeveledLogMethod,
+			a,
+			...aa
+		);
 
 	protected emerg = (a: any, ...aa: any[]) =>
-		this.logFormatter.bind(this.emerg)(this.logger.emerg as LeveledLogMethod, a, ...aa);
+		this.logFormatter.bind(this.emerg)(
+			(this.logger as WinstonLogger).emerg as LeveledLogMethod,
+			a,
+			...aa
+		);
 
 	protected warn = (a: any, ...aa: any[]) =>
-		this.logFormatter.bind(this.warn)(this.logger.warn as LeveledLogMethod, a, ...aa);
+		this.logFormatter.bind(this.warn)(
+			(this.logger as WinstonLogger).warn as LeveledLogMethod,
+			a,
+			...aa
+		);
 
 	protected error = (a: any, ...aa: any[]) =>
-		this.logFormatter.bind(this.error)(this.logger.error as LeveledLogMethod, a, ...aa);
+		this.logFormatter.bind(this.error)(
+			(this.logger as WinstonLogger).error as LeveledLogMethod,
+			a,
+			...aa
+		);
 
 	/**
 	 * Used for a class `extends` AbstractServicePublisher
