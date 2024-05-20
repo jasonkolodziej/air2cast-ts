@@ -121,9 +121,9 @@ export interface ServicePublisher {
 	destroy(): Promise<void>;
 }
 
-class LoggingServices extends winston.Container {
+export class LoggingServices extends winston.Container {
 	private readonly _main: LoggingService;
-	constructor(typeOrId?: string) {
+	constructor(typeOrId?: string, parent?: LoggingService) {
 		super(LoggingService.WinstonOptions(typeOrId));
 		this._main = this.Add('main');
 	}
@@ -151,7 +151,7 @@ const Custom = (descriptor: LoggingServices) => {
 	};
 };
 
-class LoggingService {
+export class LoggingService {
 	private readonly _logger: winston.Logger;
 	private readonly typeOrId: string;
 	protected get logger() {
@@ -345,6 +345,9 @@ export abstract class AbstractServicePublisher
 
 	protected get logger() {
 		return this._debug.logger;
+	}
+	protected get parentLogger() {
+		return this._debug;
 	}
 	protected debug: (a: any, ...aa: any[]) => Logger;
 	protected info: (a: any, ...aa: any[]) => Logger;

@@ -231,7 +231,7 @@ export class Device extends AbstractDestroyableService implements DeviceServiceS
 	private initProgram() {
 		if (this.MacAddress !== undefined) {
 			this.debug('DeviceService.initProgram');
-			this.spsProgram = new SPS(this.ProgramConfig);
+			this.spsProgram = new SPS(this.ProgramConfig, this.parentLogger);
 			// this.programEvent.
 			this.spsState = this.spsProgram.State;
 			const un = this.spsProgram.onAvailable((s) => {

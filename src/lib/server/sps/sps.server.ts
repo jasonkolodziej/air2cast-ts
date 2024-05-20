@@ -15,7 +15,8 @@ import type {
 	DeviceConfig
 } from '$lib/server/sps/types';
 import { SectionsWriter, UpdateFields } from '$lib/server/sps/utils';
-import { BasicDestroyableServiceDiscovery } from '../service/types';
+import { BasicDestroyableServiceDiscovery, LoggingServices } from '$lib/server/service/types';
+import type winston from 'winston';
 
 export abstract class AbstractChildProc {}
 
@@ -115,7 +116,7 @@ export class SPS extends BasicDestroyableServiceDiscovery<SPS, Sps> {
 	];
 	isOk: boolean = true;
 
-	constructor(deviceInfo: DeviceConfig) {
+	constructor(deviceInfo: DeviceConfig, logger?: LoggingServices) {
 		super('sps:ffmpeg');
 		// * check to see if file exists
 		// this.destroy.bind(super.destroy);
