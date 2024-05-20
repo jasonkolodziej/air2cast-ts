@@ -5,7 +5,7 @@ export const GET: RequestHandler = async ({ locals, request, url, route }) => {
 	request.headers.set('Connection', 'keep-alive');
 
 	// * new MediaStream
-	// const mediaStream = new MediaStream();
+	const mediaStream = new MediaStream();
 	// * new AudioBuffer
 	// const audioBuffer = new AudioBuffer();
 

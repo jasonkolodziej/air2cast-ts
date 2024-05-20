@@ -82,7 +82,7 @@ export const discoverDevicesAsync = (): ServiceDiscovery<Device> => {
 	});
 };
 export const discoveredMap = new Map<string, Device>();
-const discovered = discoverDevicesAsync();
+const discovered = discoverDevices();
 
 discovered.onAvailable((d) => discoveredMap.set(d.id, d));
 discovered.onUpdate((n, o) => discoveredMap.set(o.id, n));

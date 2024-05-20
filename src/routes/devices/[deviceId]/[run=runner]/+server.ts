@@ -14,9 +14,9 @@ export const GET: RequestHandler = async ({
 		return error(500);
 	}
 	const newUrl = String(url).replace('/' + run, '/stream');
+	const status = (await device.Receiver?.getStatus())?.unwrapAndThrow();
 	switch (run) {
 		case 'connect':
-			// const status = (await device.Receiver?.getStatus())?.unwrapAndThrow();
 			//return new Response(json(status));
 			//* launch the media app on the Chromecast and join the session (so we can control the CC)
 			const media = (
@@ -39,10 +39,8 @@ export const GET: RequestHandler = async ({
 			// });
 
 			return json({ newUrl, status });
-			break;
 		case 'disconnect':
-			const status = (await device.Receiver?.getStatus())?.unwrapAndThrow();
-
+			return json({ newUrl, status });
 		default:
 			return error(500, `No route ${url}`);
 	}

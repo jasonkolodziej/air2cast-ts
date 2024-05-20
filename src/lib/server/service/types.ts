@@ -14,8 +14,6 @@ import {
 // import pkg from 'debug';
 import winston, { type LeveledLogMethod } from 'winston';
 // import { LabelOptions } from 'winston';
-import Transport from 'winston-transport';
-import type { Sps } from '../sps/types';
 // * helpful exports
 // const { debug } = pkg;
 const { combine, timestamp, printf, colorize, align, label } = winston.format;
@@ -184,14 +182,16 @@ export abstract class AbstractServicePublisher
 	/*
 	 * Event used to emit errors for this publisher.
 	 */
-	protected readonly errorEvent: Event<this, [Error]>;
+	private readonly errorEvent: Event<this, [Error]>;
 
 	constructor(type: string, logger: Logger = WinstonLogger(type)) {
 		this._debug = logger;
 		// this.logger.debug(`type of:(${type})`, () => {});
 		this.errorEvent = new Event(this);
 	}
-
+	/*
+	 * Event emitted when an error occurs during publishing.
+	 */
 	get onError() {
 		return this.errorEvent.subscribable;
 	}
@@ -229,7 +229,14 @@ export abstract class AbstractServicePublisher
 	protected error = (a: any, ...aa: any[]) =>
 		this.logFormatter.bind(this.error)(this.logger.error as LeveledLogMethod, a, ...aa);
 
-	private logFormatter(f: LeveledLogMethod, a: any, ...aa: any[]): Logger {
+	/**
+	 * Used for a class `extends` AbstractServicePublisher
+	 * @param f LeveledLogMethod
+	 * @param a first a, of any type
+	 * @param aa more a's of any type
+	 * @returns logger
+	 */
+	protected logFormatter(f: LeveledLogMethod, a: any, ...aa: any[]): Logger {
 		const newLine = '├-';
 		const newLineEnd = '└-';
 		const last = aa.pop();
@@ -245,7 +252,14 @@ export abstract class AbstractServicePublisher
 		return f(format);
 	}
 
-	protected static logFormatterStatic(f: LeveledLogMethod, a: any, ...aa: any[]): Logger {
+	/**
+	 * Used for a class implements AbstractServicePublisher i.e. BasicDestroyableServiceDiscovery
+	 * @param f LeveledLogMethod
+	 * @param a first a, of any type
+	 * @param aa more a's of any type
+	 * @returns logger
+	 */
+	static logFormatterStatic(f: LeveledLogMethod, a: any, ...aa: any[]): Logger {
 		const newLine = '├-';
 		const newLineEnd = '└-';
 		const last = aa.pop();
@@ -290,7 +304,11 @@ export abstract class AbstractDestroyableService extends AbstractServicePublishe
 		this.destroyEvent = new Event(this);
 	}
 
-	public destroy(): Promise<void> {
+	get onDestroy() {
+		return this.destroyEvent.subscribable;
+	}
+
+	public override destroy(): Promise<void> {
 		if (this.destroyed) return Promise.resolve();
 
 		this._destroyed = true;
@@ -304,51 +322,56 @@ export abstract class AbstractDestroyableService extends AbstractServicePublishe
 	get destroyed() {
 		return this._destroyed;
 	}
-
-	get onDestroy() {
-		return this.destroyEvent.subscribable;
-	}
 }
 
-export abstract class BasicServiceDiscoveryJ<
-		Provider extends BasicServiceDiscoveryJ,
+export abstract class BasicDestroyableServiceDiscovery<
+		Provider extends BasicDestroyableServiceDiscovery,
 		S extends Service
 	>
 	extends BasicServiceDiscovery<S>
 	implements AbstractDestroyableService
 {
-	protected _debug: Logger;
-	protected errorEvent: Event<this, [Error]>;
-	protected get logger(): Logger {
-		return this._debug;
-	}
 	private _provider: Provider;
-	constructor(type: string, logger: Logger = WinstonLogger(type)) {
+	protected set provider(parent: Provider) {
+		this._provider = parent;
+	}
+	constructor(type: string, logger: Logger = WinstonLogger(type), parent?: Provider) {
 		super(type);
-		this.errorEvent = new Event(this);
-		super.logAndEmitError.bind(this.logAndEmitError);
+		this.provider(parent);
+
 		this._debug = logger;
+		this.logFormatter = AbstractServicePublisher.logFormatterStatic;
 		this.emerg = this.logger.emerg;
 		this.info = this.logger.info;
 		this.crit = this.logger.crit;
 		this.warn = this.logger.warn;
 		this.error = this.logger.error;
+		super.logAndEmitError.bind(this.logAndEmitError);
+
+		super.destroy.bind(this.destroy);
+		this.destroy.bind(super.destroy);
+
 		this.setServices = super.setServices;
 		this.updateService = super.updateService;
 		this.removeService = super.removeService;
 	}
-	protected set provider(parent: Provider) {
-		this._provider = parent;
+	/*
+	 * Redefine implemented abstract class
+	 */
+	protected _debug: Logger;
+	protected get logger(): Logger {
+		return this._debug;
 	}
-	// protected logFormatter = (f: LeveledLogMethod, a: any, ...aa: any[]): Logger => // AbstractServicePublisher()
 	protected abstract beforeDestroy(): Promise<void>;
-
 	protected info: (a: any, ...aa: any[]) => Logger;
 	protected crit: (a: any, ...aa: any[]) => Logger;
 	protected emerg: (a: any, ...aa: any[]) => Logger;
 	protected warn: (a: any, ...aa: any[]) => Logger;
 	protected error: (a: any, ...aa: any[]) => Logger;
-
+	protected logFormatter: (f: LeveledLogMethod, a: any, ...aa: any[]) => Logger;
+	/*
+	 * Redefine BasicServiceDiscovery functions
+	 */
 	protected updateService: (service: S) => S | null;
 	protected setServices: (services: Iterable<S>) => void;
 	protected removeService: (service: string | S) => S | null;

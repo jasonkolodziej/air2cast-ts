@@ -15,11 +15,11 @@ import type {
 	DeviceConfig
 } from '$lib/server/sps/types';
 import { SectionsWriter, UpdateFields } from '$lib/server/sps/utils';
-import { BasicServiceDiscoveryJ } from '../service/types';
+import { BasicDestroyableServiceDiscovery } from '../service/types';
 
 export abstract class AbstractChildProc {}
 
-export class SPS extends BasicServiceDiscoveryJ<SPS, Sps> {
+export class SPS extends BasicDestroyableServiceDiscovery<SPS, Sps> {
 	protected beforeDestroy(): Promise<void> {
 		throw new Error('Method not implemented.');
 	}
